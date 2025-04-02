@@ -1,5 +1,4 @@
 import 'package:clickio_consent_sdk/dialog_mode.dart';
-
 import 'clickio_consent_sdk_platform_interface.dart';
 
 class ClickioConsentSdk {

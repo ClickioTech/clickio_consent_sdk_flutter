@@ -1,3 +1,4 @@
+import 'package:clickio_consent_sdk/dialog_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 import 'package:clickio_consent_sdk/clickio_consent_sdk_platform_interface.dart';
@@ -16,12 +17,14 @@ class MockClickioConsentSdkPlatform
   }
 
   @override
-  Future<void> openConsentDialog() async {
+  Future<void> openDialog({DialogMode mode = DialogMode.defaultMode}) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<String?> getPlatformVersion() => Future.value('42');
+  Future<Map<String, String?>> getConsentData() async {
+    throw UnimplementedError();
+  }
 }
 
 void main() {
@@ -30,14 +33,5 @@ void main() {
 
   test('$MethodChannelClickioConsentSdk is the default instance', () {
     expect(initialPlatform, isInstanceOf<MethodChannelClickioConsentSdk>());
-  });
-
-  test('getPlatformVersion', () async {
-    ClickioConsentSdk clickioConsentSdkPlugin = ClickioConsentSdk();
-    MockClickioConsentSdkPlatform fakePlatform =
-        MockClickioConsentSdkPlatform();
-    ClickioConsentSdkPlatform.instance = fakePlatform;
-
-    expect(await clickioConsentSdkPlugin.getPlatformVersion(), '42');
   });
 }

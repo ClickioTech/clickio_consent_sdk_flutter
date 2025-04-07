@@ -34,7 +34,67 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     return _instance.openDialog(mode: mode);
   }
 
-  Future<Map<String, String?>> getConsentData() async {
-    return _instance.getConsentData();
+  Future<String?> getConsentScope() async {
+    return _instance.getConsentScope();
+  }
+
+  Future<String?> getConsentState() async {
+    return _instance.getConsentState();
+  }
+
+  Future<String?> getConsentForPurpose({required int purposeId}) async {
+    return _instance.getConsentForPurpose(purposeId: purposeId);
+  }
+
+  Future<String?> getConsentForVendor({required int vendorId}) async {
+    return _instance.getConsentForVendor(vendorId: vendorId);
+  }
+
+  Future<String?> getTCString() async {
+    return _instance.getTCString();
+  }
+
+  Future<String?> getACString() async {
+    return _instance.getACString();
+  }
+
+  Future<String?> getGPPString() async {
+    return _instance.getGPPString();
+  }
+
+  Future<String?> getConsentedTCFVendors() async {
+    return _instance.getConsentedTCFVendors();
+  }
+
+  Future<String?> getConsentedTCFLiVendors() async {
+    return _instance.getConsentedTCFLiVendors();
+  }
+
+  Future<String?> getConsentedTCFPurposes() async {
+    return _instance.getConsentedTCFPurposes();
+  }
+
+  Future<String?> getConsentedTCFLiPurposes() async {
+    return _instance.getConsentedTCFLiPurposes();
+  }
+
+  Future<String?> getConsentedGoogleVendors() async {
+    return _instance.getConsentedGoogleVendors();
+  }
+
+  Future<String?> getConsentedOtherVendors() async {
+    return _instance.getConsentedOtherVendors();
+  }
+
+  Future<String?> getConsentedOtherLiVendors() async {
+    return _instance.getConsentedOtherLiVendors();
+  }
+
+  Future<String?> getConsentedNonTcfPurposes() async {
+    return _instance.getConsentedNonTcfPurposes();
+  }
+
+  Future<String?> getGoogleConsentMode() async {
+    return _instance.getGoogleConsentMode();
   }
 }

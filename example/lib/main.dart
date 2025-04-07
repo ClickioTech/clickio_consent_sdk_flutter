@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clickio_consent_sdk/dialog_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 
@@ -27,7 +28,6 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     initilizeSdk();
-    // openDialog();
   }
 
   @override
@@ -91,7 +91,7 @@ class _MyAppState extends State<MyApp> {
                               ),
                             ),
                             subtitle: Text(
-                              entry.value ?? 'Unknown',
+                              entry.value.toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
@@ -121,23 +121,88 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> openDialog() async {
     if (Platform.isAndroid) {
-      await _clickioConsentSdk.openDialog();
+      await _clickioConsentSdk.openDialog(mode: DialogMode.resurfaceMode);
     } else {
-      await _clickioConsentSdkIOS.openDialog();
+      await _clickioConsentSdkIOS.openDialog(
+        mode: DialogMode.resurfaceMode,
+        showATTFirst: true,
+        alwaysShowCMP: true,
+        attNeeded: true,
+      );
     }
   }
 
   Future<void> getConsentData() async {
     // Get Consent Data
     if (Platform.isAndroid) {
-      _consentData = await _clickioConsentSdk.getConsentData();
+      _consentData = await getAndroidConsentData();
     } else {
-      _consentData = await _clickioConsentSdkIOS.getConsentData();
+      _consentData = await getIosConsentData();
     }
 
     setState(() {
       _consentData = _sortConsentData(_consentData);
     });
+  }
+
+  Future<Map<String, String?>> getAndroidConsentData() async {
+    final sdk = _clickioConsentSdk;
+    final futures = {
+      'checkConsentScope': sdk.getConsentScope(),
+      'checkConsentState': sdk.getConsentState(),
+      'checkConsentForPurpose(1)': sdk.getConsentForPurpose(purposeId: 1),
+      'checkConsentForVendor(9)': sdk.getConsentForVendor(vendorId: 9),
+      'getTCString': sdk.getTCString(),
+      'getACString': sdk.getACString(),
+      'getGPPString': sdk.getGPPString(),
+      'getGoogleConsentMode': sdk.getGoogleConsentMode(),
+      'getConsentedTCFVendors': sdk.getConsentedTCFVendors(),
+      'getConsentedTCFLiVendors': sdk.getConsentedTCFLiVendors(),
+      'getConsentedTCFPurposes': sdk.getConsentedTCFPurposes(),
+      'getConsentedTCFLiPurposes': sdk.getConsentedTCFLiPurposes(),
+      'getConsentedGoogleVendors': sdk.getConsentedGoogleVendors(),
+      'getConsentedOtherVendors': sdk.getConsentedOtherVendors(),
+      'getConsentedOtherLiVendors': sdk.getConsentedOtherLiVendors(),
+      'getConsentedNonTcfPurposes': sdk.getConsentedNonTcfPurposes(),
+    };
+
+    final entries = await Future.wait(
+      futures.entries.map(
+        (entry) async => MapEntry(entry.key, await entry.value),
+      ),
+    );
+
+    return Map.fromEntries(entries);
+  }
+
+  Future<Map<String, String?>> getIosConsentData() async {
+    final sdk = _clickioConsentSdkIOS;
+    final futures = {
+      'checkConsentScope': sdk.getConsentScope(),
+      'checkConsentState': sdk.getConsentState(),
+      'checkConsentForPurpose(1)': sdk.getConsentForPurpose(purposeId: 1),
+      'checkConsentForVendor(9)': sdk.getConsentForVendor(vendorId: 9),
+      'getTCString': sdk.getTCString(),
+      'getACString': sdk.getACString(),
+      'getGPPString': sdk.getGPPString(),
+      'getGoogleConsentMode': sdk.getGoogleConsentMode(),
+      'getConsentedTCFVendors': sdk.getConsentedTCFVendors(),
+      'getConsentedTCFLiVendors': sdk.getConsentedTCFLiVendors(),
+      'getConsentedTCFPurposes': sdk.getConsentedTCFPurposes(),
+      'getConsentedTCFLiPurposes': sdk.getConsentedTCFLiPurposes(),
+      'getConsentedGoogleVendors': sdk.getConsentedGoogleVendors(),
+      'getConsentedOtherVendors': sdk.getConsentedOtherVendors(),
+      'getConsentedOtherLiVendors': sdk.getConsentedOtherLiVendors(),
+      'getConsentedNonTcfPurposes': sdk.getConsentedNonTcfPurposes(),
+    };
+
+    final entries = await Future.wait(
+      futures.entries.map(
+        (entry) async => MapEntry(entry.key, await entry.value),
+      ),
+    );
+
+    return Map.fromEntries(entries);
   }
 
   Map<String, String?> _sortConsentData(Map<String, String?> consentData) {

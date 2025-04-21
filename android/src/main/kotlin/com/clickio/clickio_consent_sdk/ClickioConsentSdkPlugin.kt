@@ -3,6 +3,7 @@ package com.clickio.clickio_consent_sdk
 import android.app.Activity
 import com.clickio.clickioconsentsdk.ClickioConsentSDK
 import com.clickio.clickioconsentsdk.ClickioConsentSDK.Config
+import com.clickio.clickioconsentsdk.LogsMode
 import com.clickio.clickioconsentsdk.ExportData
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -23,7 +24,8 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
-            "initialize" -> initializeConsentSDK(call, result)
+            "initialize" -> initialize(call, result)
+            "setLogsMode" -> setLogsMode(call, result)
             "openDialog" -> openDialog(call, result)
             "getConsentScope" -> getConsentScope(result)
             "getConsentState" -> getConsentState(result)
@@ -45,24 +47,32 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
         }
     }
 
-    private fun initializeConsentSDK(call: MethodCall, result: Result) {
+    private fun initialize(call: MethodCall, result: Result) {
         val act = activity ?: return result.error("NO_ACTIVITY", "Activity is null", null)
-        val appId = call.argument<String>("appId") ?: return result.error("INVALID_ARGUMENT", "appId is required", null)
+        val siteId = call.argument<String>("siteId") ?: return result.error("INVALID_ARGUMENT", "siteId is required", null)
         val language = call.argument<String>("language") ?: return result.error("INVALID_ARGUMENT", "language is required", null)
+        val config = Config(siteId, language)
 
-        val config = Config(appId, language)
         ClickioConsentSDK.getInstance().initialize(act, config)
-        result.success("ClickioConsentSDK initialized")
+    }
+
+    private fun setLogsMode(call: MethodCall, result: Result) {
+        val mode = when (call.argument<String>("mode")) {
+            "verbose" -> LogsMode.VERBOSE
+            else -> LogsMode.DISABLED
+        }
+
+        ClickioConsentSDK.getInstance().setLogsMode(mode)
     }
 
     private fun openDialog(call: MethodCall, result: Result) {
         val act = activity ?: return result.error("NO_ACTIVITY", "Activity is null", null)
         val mode = when (call.argument<String>("mode")) {
-            "resurfaceMode" -> ClickioConsentSDK.DialogMode.RESURFACE
+            "resurface" -> ClickioConsentSDK.DialogMode.RESURFACE
             else -> ClickioConsentSDK.DialogMode.DEFAULT
         }
+
         ClickioConsentSDK.getInstance().openDialog(act, mode)
-        result.success("Consent Dialog opened")
     }
 
     private fun getConsentScope(result: Result) {

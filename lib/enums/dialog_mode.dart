@@ -1,0 +1,1 @@
+enum DialogMode { defaultMode, resurface }

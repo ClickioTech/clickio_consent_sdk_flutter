@@ -1,4 +1,4 @@
-import 'package:clickio_consent_sdk/dialog_mode.dart';
+import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clickio_consent_sdk/clickio_consent_sdk_platform_interface.dart';
 import 'package:clickio_consent_sdk/clickio_consent_sdk_method_channel.dart';
@@ -8,15 +8,26 @@ class MockClickioConsentSdkPlatform
     with MockPlatformInterfaceMixin
     implements ClickioConsentSdkPlatform {
   @override
-  Future<String?> initialize({
-    required String appId,
-    required String language,
-  }) async {
+  Future<String?> initialize({required Config config}) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<String?> openDialog({DialogMode mode = DialogMode.defaultMode}) async {
+  Future<void> setLogsMode({required LogsMode mode}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> onConsentUpdated() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String?> openDialog({
+    DialogMode mode = DialogMode.defaultMode,
+    required bool attNeeded,
+    required bool showATTFirst,
+  }) async {
     throw UnimplementedError();
   }
 

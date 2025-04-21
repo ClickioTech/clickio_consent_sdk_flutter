@@ -1,19 +1,33 @@
-import 'package:clickio_consent_sdk/dialog_mode.dart';
-import 'clickio_consent_sdk_platform_interface.dart';
+import './clickio_consent_sdk_platform_interface.dart';
+import './config/config.dart';
+import './enums/enums.dart';
+
+export './config/config.dart';
+export './enums/enums.dart';
 
 class ClickioConsentSdk {
-  Future<String?> initialize({
-    required String appId,
-    String language = 'en',
-  }) async {
-    return ClickioConsentSdkPlatform.instance.initialize(
-      appId: appId,
-      language: language,
-    );
+  Future<String?> initialize({required Config config}) async {
+    return ClickioConsentSdkPlatform.instance.initialize(config: config);
   }
 
-  Future<void> openDialog({DialogMode mode = DialogMode.defaultMode}) async {
-    return ClickioConsentSdkPlatform.instance.openDialog(mode: mode);
+  Future<void> setLogsMode({required LogsMode mode}) async {
+    return ClickioConsentSdkPlatform.instance.setLogsMode(mode: mode);
+  }
+
+  Future<void> onConsentUpdated() async {
+    return ClickioConsentSdkPlatform.instance.onConsentUpdated();
+  }
+
+  Future<void> openDialog({
+    DialogMode mode = DialogMode.defaultMode,
+    bool showATTFirst = false,
+    bool attNeeded = false,
+  }) async {
+    return ClickioConsentSdkPlatform.instance.openDialog(
+      mode: mode,
+      showATTFirst: showATTFirst,
+      attNeeded: attNeeded,
+    );
   }
 
   Future<String?> getConsentScope() async {
@@ -37,7 +51,7 @@ class ClickioConsentSdk {
   }
 
   Future<String?> getTCString() async {
-    return await ClickioConsentSdkPlatform.instance.getTCString();
+    return ClickioConsentSdkPlatform.instance.getTCString();
   }
 
   Future<String?> getACString() async {

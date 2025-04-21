@@ -1,0 +1,1 @@
+enum LogsMode { disabled, verbose }

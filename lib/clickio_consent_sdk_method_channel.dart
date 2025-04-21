@@ -1,50 +1,66 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'clickio_consent_sdk_platform_interface.dart';
-import 'dialog_mode.dart';
+import './clickio_consent_sdk_platform_interface.dart';
+import './enums/enums.dart';
+import './config/config.dart';
 
 /// An implementation of [ClickioConsentSdkPlatform] that uses method channels.
 class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   static const _methodChannel = MethodChannel('clickio_consent_sdk');
 
   @override
-  Future<String?> initialize({
-    required String appId,
-    String language = 'en',
-  }) async {
+  Future<String?> initialize({required Config config}) async {
     try {
-      debugPrint(
-        'Initializing ClickioConsentSDK with appId=$appId, language=$language',
-      );
-
       final result = await _methodChannel.invokeMethod<String>('initialize', {
-        'appId': appId,
-        'language': language,
+        'siteId': config.siteId,
+        'language': config.language,
       });
 
-      debugPrint(result);
       return result;
     } catch (e) {
       debugPrint('Error initializing SDK - $e');
+
       return null;
     }
   }
 
   @override
-  Future<String?> openDialog({required DialogMode mode}) async {
+  Future<void> setLogsMode({required LogsMode mode}) async {
+    await _methodChannel.invokeMethod('setLogsMode', {'mode': mode.name});
+  }
+
+  @override
+  Future<void> onConsentUpdated() async {
+    await _methodChannel.invokeMethod('onConsentUpdated');
+  }
+
+  @override
+  Future<String?> openDialog({
+    required DialogMode mode,
+    required bool showATTFirst,
+    required bool attNeeded,
+  }) async {
     try {
-      debugPrint('Opening consent dialog with mode: ${mode.name}');
-
-      final result = await _methodChannel.invokeMethod<String>('openDialog', {
+      final args = {
         'mode': mode.name,
-      });
+        if (Platform.isIOS) ...{
+          'showATTFirst': showATTFirst,
+          'attNeeded': attNeeded,
+        },
+      };
 
-      debugPrint(result);
+      final result = await _methodChannel.invokeMethod<String>(
+        'openDialog',
+        args,
+      );
 
       return result;
     } catch (e) {
       debugPrint('Error opening consent dialog - $e');
+
       return null;
     }
   }
@@ -52,8 +68,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   Future<String?> getConsentScope() async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentScope');
-
-      debugPrint('checkConsentScope: $result');
 
       return result;
     } catch (e) {
@@ -66,8 +80,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   Future<String?> getConsentState() async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentState');
-
-      debugPrint('checkConsentState: $result');
 
       return result;
     } catch (e) {
@@ -83,8 +95,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
         'id': purposeId,
       });
 
-      debugPrint('checkConsentForPurpose($purposeId): $result');
-
       return result;
     } catch (e) {
       debugPrint('Error retrieving consent for purpose - $e');
@@ -98,8 +108,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
         'id': vendorId,
       });
 
-      debugPrint('checkConsentForVendor($vendorId): $result');
-
       return result;
     } catch (e) {
       debugPrint('Error retrieving consent for vendor - $e');
@@ -111,8 +119,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   Future<String?> getTCString() async {
     try {
       final result = await _methodChannel.invokeMethod('getTCString');
-
-      debugPrint('getTCString: $result');
 
       return result;
     } catch (e) {
@@ -126,8 +132,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     try {
       final result = await _methodChannel.invokeMethod('getACString');
 
-      debugPrint('getACString: $result');
-
       return result;
     } catch (e) {
       debugPrint('Error retrieving AC String - $e');
@@ -139,8 +143,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   Future<String?> getGPPString() async {
     try {
       final result = await _methodChannel.invokeMethod('getGPPString');
-
-      debugPrint('getGPPString: $result');
 
       return result;
     } catch (e) {
@@ -154,8 +156,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
       final result = await _methodChannel.invokeMethod(
         'getConsentedTCFVendors',
       );
-
-      debugPrint('getConsentedTCFVendors: $result');
 
       return result;
     } catch (e) {
@@ -171,8 +171,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
         'getConsentedTCFLiVendors',
       );
 
-      debugPrint('getConsentedTCFLiVendors: $result');
-
       return result;
     } catch (e) {
       debugPrint('Error retrieving consented TCF Li vendors - $e');
@@ -186,8 +184,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
       final result = await _methodChannel.invokeMethod(
         'getConsentedTCFPurposes',
       );
-
-      debugPrint('getConsentedTCFPurposes: $result');
 
       return result;
     } catch (e) {
@@ -203,8 +199,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
         'getConsentedTCFLiPurposes',
       );
 
-      debugPrint('getConsentedTCFLiPurposes: $result');
-
       return result;
     } catch (e) {
       debugPrint('Error retrieving consented TCF Li purposes - $e');
@@ -218,8 +212,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
       final result = await _methodChannel.invokeMethod(
         'getConsentedGoogleVendors',
       );
-
-      debugPrint('getConsentedGoogleVendors: $result');
 
       return result;
     } catch (e) {
@@ -235,8 +227,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
         'getConsentedOtherVendors',
       );
 
-      debugPrint('getConsentedOtherVendors: $result');
-
       return result;
     } catch (e) {
       debugPrint('Error retrieving consented other vendors - $e');
@@ -250,8 +240,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
       final result = await _methodChannel.invokeMethod(
         'getConsentedOtherLiVendors',
       );
-
-      debugPrint('getConsentedOtherLiVendors: $result');
 
       return result;
     } catch (e) {
@@ -267,8 +255,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
         'getConsentedNonTcfPurposes',
       );
 
-      debugPrint('getConsentedNonTcfPurposes: $result');
-
       return result;
     } catch (e) {
       debugPrint('Error retrieving consented non-TCF purposes - $e');
@@ -280,8 +266,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   Future<String?> getGoogleConsentMode() async {
     try {
       final result = await _methodChannel.invokeMethod('getGoogleConsentMode');
-
-      debugPrint('Google Consent Mode: $result');
 
       return result;
     } catch (e) {

@@ -46,12 +46,6 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>Test ATT Request</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-
+	<string>This app collects and tracks your usage data for the purpose of delivering personalized advertisements and measuring ad performance. By using this app, you acknowledge and agree that your information may be processed and shared with our advertising partners</string>
 </dict>
 </plist>

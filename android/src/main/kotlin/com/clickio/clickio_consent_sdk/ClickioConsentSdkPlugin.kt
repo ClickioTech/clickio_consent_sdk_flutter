@@ -49,21 +49,23 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
 
     private fun initialize(call: MethodCall, result: Result) {
         val act = activity ?: return result.error("NO_ACTIVITY", "Activity is null", null)
-        val siteId = call.argument<String>("siteId") ?: return result.error("INVALID_ARGUMENT", "siteId is required", null)
-        val language = call.argument<String>("language") ?: return result.error("INVALID_ARGUMENT", "language is required", null)
+        val siteId: String = call.argument<String>("siteId") ?: return result.error("INVALID_ARGUMENT", "siteId is required", null)
+        val language = call.argument<String>("language") ?: "en"
         val config = Config(siteId, language)
 
         ClickioConsentSDK.getInstance().initialize(act, config)
     }
 
-    private fun setLogsMode(call: MethodCall, result: Result) {
-        val mode = when (call.argument<String>("mode")) {
-            "verbose" -> LogsMode.VERBOSE
-            else -> LogsMode.DISABLED
-        }
-
-        ClickioConsentSDK.getInstance().setLogsMode(mode)
+   private fun setLogsMode(call: MethodCall, result: Result) {
+    val mode = when (call.argument<String>("mode")) {
+        "verbose" -> LogsMode.VERBOSE
+        else -> LogsMode.DISABLED
     }
+
+    ClickioConsentSDK.getInstance().setLogsMode(mode)
+    
+    result.success(null) 
+}
 
     private fun openDialog(call: MethodCall, result: Result) {
         val act = activity ?: return result.error("NO_ACTIVITY", "Activity is null", null)

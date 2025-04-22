@@ -107,8 +107,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initializeSdk() async {
-    await clickioConsentSdk.initialize(config: config);
     await clickioConsentSdk.setLogsMode(mode: LogsMode.verbose);
+    await clickioConsentSdk.initialize(config: config);
   }
 
   Future<void> openDialog() async {

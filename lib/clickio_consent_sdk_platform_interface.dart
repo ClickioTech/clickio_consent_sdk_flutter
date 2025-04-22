@@ -32,10 +32,6 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     return _instance.setLogsMode(mode: mode);
   }
 
-  Future<void> onConsentUpdated() async {
-    return _instance.onConsentUpdated();
-  }
-
   Future<void> openDialog({
     required DialogMode mode,
     required bool showATTFirst,

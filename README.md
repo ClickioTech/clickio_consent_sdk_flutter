@@ -1,8 +1,16 @@
 # Clickio Consent SDK for Flutter
 
 A Flutter plugin that wraps the native Clickio Consent SDK for Android and iOS, providing a unified API for managing user consent in compliance with GDPR, TCF, GPP, and other regulations.
+ 
+1. [Requirements](#requirements)
+2. [Installation](#installation)
+3. [Quick Start](#quick-start)
+4. [Setup and Usage](#setup-and-usage)
+5. [Methods](#methods)
+6. [Integration with Third-Party Libraries for Google Consent Mode](#integration-with-third-party-libraries-for-google-consent-mode)
+7. [Integration with Third-Party Libraries When Google Consent Mode Is Disabled](#⚙️-integration-with-third-party-libraries-when-google-consent-mode-is-disabled)
 
-## 📌 Requirements
+## Requirements
 
 Before integrating the ClickioConsentSdk (hereinafter reffered to as the Clickio SDK), ensure that your Flutter application meets the following requirements:
 
@@ -28,7 +36,7 @@ Before integrating the ClickioConsentSdk (hereinafter reffered to as the Clickio
 <string>Add your data usage description</string>
 ```
 
-## 📦 Installation
+## Installation
 
 ### Use this plugin as a library
 
@@ -36,9 +44,8 @@ Before integrating the ClickioConsentSdk (hereinafter reffered to as the Clickio
 
 Run this command:
 
-<pre>
 With Flutter:
-
+<pre>
 $ flutter pub add clickio_consent_sdk
 </pre>
 
@@ -59,11 +66,9 @@ Now in your Dart code, you can use:
 import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 ```
 
-Here’s a **Flutter Quick Start** section written in the same style as the native iOS and Android ones:
-
 ---
 
-## 🔥 Quick Start
+## Quick Start
 
 Here’s the minimal implementation to get started with the `clickio_consent_sdk` in a Flutter project.
 
@@ -75,7 +80,7 @@ import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 
 ### Initialize the SDK and Open Consent Window:
 
-Replace `your_clickio_site_id` with your actual site ID.
+Replace `your_clickio_site_id` with your actual [**Site ID**](https://docs.clickio.com/books/clickio-consent-cmp/page/google-consent-mode-v2-implementation#bkmrk-access-the-template%3A).
 
 ```dart
 final clickioConsentSdk = ClickioConsentSdk();
@@ -97,22 +102,22 @@ await clickioConsentSdk.openDialog(
 );
 ```
 
-✅ In this code, after successful initialization, the SDK will automatically open the Consent Window, a transparent screen with a WebView containing the consent form.
+✅ In this code, after successful initialization, the SDK will open the Consent Window, a transparent screen with a WebView containing the consent form.
 
 ---
 
-## 🛠 Setup and Usage
+## Setup and Usage
 
 ### App Tracking Transparency (ATT) Permission
 
-If your app collects and shares user data with third parties for tracking across apps or websites, **you must**:
+`Clickio SDK` supports [three](#example-scenarios) distinct scenarios for handling ATT permissions If your app collects and shares user data with third parties for tracking across apps or websites, **you must**:
 
-1. Add the `NSUserTrackingUsageDescription` key in your `Info.plist`.
-2. Choose an ATT permission handling strategy using the `openDialog` method.
+1. Add the [`NSUserTrackingUsageDescription`](https://developer.apple.com/documentation/BundleResources/Information-Property-List/NSUserTrackingUsageDescription) key in your `Info.plist`.
+2. Choose an ATT permission handling strategy using the [`openDialog`](#opening-the-consent-dialog) method.
 
-If you're managing ATT permissions manually and have already added `NSUserTrackingUsageDescription`, you can skip ATT integration here and just use the consent flow.
+If you're managing ATT permissions manually and have already added [`NSUserTrackingUsageDescription`](https://developer.apple.com/documentation/BundleResources/Information-Property-List/NSUserTrackingUsageDescription), you can skip ATT integration here and just use the consent flow.
 
-👉 See [ User Privacy and Data Use](https://developer.apple.com/app-store/user-privacy-and-data-use/) and [App Privacy Details](https://developer.apple.com/app-store/app-privacy-details/) for more details.
+👉 See [User Privacy and Data Use](https://developer.apple.com/app-store/user-privacy-and-data-use/) and [App Privacy Details](https://developer.apple.com/app-store/app-privacy-details/) for more details.
 
 ---
 
@@ -141,7 +146,7 @@ await clickioConsentSdk.initialize(
 
 `Config` parameters:
 - `siteId` – Your Clickio Site ID (**required**)
-- `language` – Optional, 2-letter ISO 639-1 language code (e.g., 'en', 'de')
+- `language` – Optional, 2-letter [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) language code (e.g., 'en', 'de')
 
 ---
 
@@ -219,7 +224,7 @@ To enable or disable logging:
 
 ```dart
 await clickioConsentSdk.setLogsMode(
-  mode: LogsMode.verbose, // or LogsMode.disabled
+  mode: LogsMode.verbose,
 ); 
 ```
 
@@ -232,91 +237,240 @@ await clickioConsentSdk.setLogsMode(
 ### Checking Consent Scope
 
 ```dart
-final scope = await clickioConsentSdk.getConsentScope();
+Future<String> consentScope = clickioConsentSdk.getConsentScope();
 ```
 
-Returns the applicable consent scope as String.
+Returns the applicable **consent scope**.
 
-**Returns:**
-- `"gdpr"` – GDPR applies
-- `"us"` – US regulations apply
-- `"out of scope"` – Neither applies
+#### Return type: `String`
+
+| Value           | Description                        |
+|----------------|------------------------------------|
+| `"gdpr"`        | GDPR applies                       |
+| `"us"`          | US regulations apply               |
+| `"out of scope"`| Neither GDPR nor US laws apply     |
 
 ---
 
 ### Checking Consent State
 
 ```dart
-final state = await clickioConsentSdk.getConsentState();
+Future<ConsentState> consentState = clickioConsentSdk.getConsentState();
 ```
 
-Determines the consent state based on the scope and force flag and returns ConsentState.
+Determines the current **consent state** based on the applicable scope and force flag.
 
-**Returns:**
-- `notApplicable`
-- `gdprNoDecision`
-- `gdprDecisionObtained`
-- `us`
+#### Return type: `ConsentState` enum
+
+| Android             | iOS                 | Description                                                 |
+|---------------------|---------------------|-------------------------------------------------------------|
+| `NOT_APPLICABLE`    | `notApplicable`      | Consent is not required for the current region              |
+| `GDPR_NO_DECISION`  | `gdprNoDecision`     | GDPR applies, no user decision made                         |
+| `GDPR_DECISION_OBTAINED` | `gdprDecisionObtained` | GDPR applies and decision obtained                      |
+| `US`                | `us`                 | US privacy laws apply                                       |
+
+> ⚠️ **Note:** Enum casing differs by platform: Android uses **UPPER_SNAKE_CASE**, iOS uses **camelCase**.
 
 ---
 
 ### Checking Consent for a Purpose
 
 ```dart
-final hasConsent = await clickioConsentSdk.getConsentForPurpose(
+Future<bool> consentForPurpose = clickioConsentSdk.getConsentForPurpose(
   purposeId: purposeId,
 );
 ```
 
-#### Parameters
+Checks whether consent was granted for a specific [**TCF purpose**](https://iabeurope.eu/iab-europe-transparency-consent-framework-policies/#headline-24-18959).
 
-- `purposeId` *(int)*: The numeric ID of the TCF purpose to check.
+#### Parameter
 
-Verifies whether consent for a specific TCF purpose has been granted by using `IABTCF_PurposeConsents` string.
+- `purposeId` (`int`): The numeric ID of the TCF purpose.
 
-**For a vendor:**
+#### Return type: `bool`
+
+---
+
+### Checking Consent for a Vendor
 
 ```dart
-final hasConsent = await clickioConsentSdk.getConsentForVendor(
-  vendorId: 123,
+Future<bool> consentForVendor = clickioConsentSdk.getConsentForVendor(
+  vendorId: vendorId,
 );
 ```
 
+Checks whether consent was granted for a specific [**TCF vendor**](https://iabeurope.eu/vendor-list-tcf/).
+
+#### Parameter
+
+- `vendorId` (`int`): The numeric ID of the vendor.
+
+#### Return type: `bool`
+
 ---
 
-## 🔐 Get Consent Strings
+## Methods
 
-- `getTCString()`
-- `getACString()`
-- `getGPPString()`
+These methods allow you to query consent strings and granted vendor/purpose IDs, mirroring behavior from iOS/Android.
 
+---
+
+### `getTCString() → Future<String?>`
+Returns the IAB TCF v2.2 string if it exists.
+
+---
+
+### `getACString() → Future<String?>`
+Returns the Google additional consent string if it exists.
+
+---
+
+### `getGPPString() → Future<String?>`
+Returns the Global Privacy Platform (GPP) string if it exists.
+
+---
+
+### `getConsentedTCFVendors() → Future<List<int>?>`
+Returns the IDs of TCF vendors that have given consent.
+
+---
+
+### `getConsentedTCFLiVendors() → Future<List<int>?>`
+Returns the IDs of TCF vendors that have given consent for legitimate interests.
+
+---
+
+### `getConsentedTCFPurposes() → Future<List<int>?>`
+Returns the IDs of TCF purposes that have given consent.
+
+---
+
+### `getConsentedTCFLiPurposes() → Future<List<int>?>`
+Returns the IDs of TCF purposes that have given consent as Legitimate Interest.
+
+---
+
+### `getConsentedGoogleVendors() → Future<List<int>?>`
+Returns the IDs of Google vendors that have given consent.
+
+---
+
+### `getConsentedOtherVendors() → Future<List<int>?>`
+Returns the IDs of non-TCF vendors that have given consent.
+
+---
+
+### `getConsentedOtherLiVendors() → Future<List<int>?>`
+Returns the IDs of non-TCF vendors that have given consent for legitimate interests.
+
+---
+
+### `getConsentedNonTcfPurposes() → Future<List<int>?>`
+Returns the IDs of non-TCF purposes (simplified purposes) that have given consent.
+
+---
+
+### `getGoogleConsentMode() → Future<GoogleConsentStatus?>`
+Returns the Google Consent Mode v2 status if enabled. Otherwise returns `null`.
+
+#### GoogleConsentStatus:
 ```dart
-final tcString = await clickioConsentSdk.getTCString();
+class GoogleConsentStatus {
+  final bool analyticsStorageGranted;
+  final bool adStorageGranted;
+  final bool adUserDataGranted;
+  final bool adPersonalizationGranted;
+
+  GoogleConsentStatus({
+    required this.analyticsStorageGranted,
+    required this.adStorageGranted,
+    required this.adUserDataGranted,
+    required this.adPersonalizationGranted,
+  });
+}
 ```
 
----
-
-## ✅ Get Consented Entities
-
-These methods return stringified IDs for the respective categories:
-
-- `getConsentedTCFVendors()`
-- `getConsentedTCFLiVendors()`
-- `getConsentedTCFPurposes()`
-- `getConsentedTCFLiPurposes()`
-- `getConsentedGoogleVendors()`
-- `getConsentedOtherVendors()`
-- `getConsentedOtherLiVendors()`
-- `getConsentedNonTcfPurposes()`
+- `analyticsStorageGranted` — Consent for analytics storage  
+- `adStorageGranted` — Consent for ad storage  
+- `adUserDataGranted` — Consent for processing user data for ads  
+- `adPersonalizationGranted` — Consent for ad personalization  
 
 ---
 
-## 📊 Google Consent Mode
+Sure! Here's a **fancy documentation block** with headings, bullet points, and formatting for clarity and visual appeal:
 
-Retrieve Google Consent Mode string:
+---
+
+## Integration with Third-Party Libraries for Google Consent Mode
+
+ClickioConsentSDK provides **automatic support** for transmitting **Google Consent Mode v2** flags to popular third-party platforms when enabled:
+
+### ✅ Supported Platforms
+- [**Firebase Analytics**](https://firebase.google.com/docs/analytics)
+- [**Adjust**](https://www.adjust.com/)
+- [**Airbridge**](https://www.airbridge.io/)
+- [**AppsFlyer**](https://www.appsflyer.com/)
+
+---
+
+### 📊 Firebase Analytics
+
+If the **Firebase Analytics SDK** is present in your project:
+
+- ClickioConsentSDK will **automatically send** Google Consent Mode flags to Firebase **if integration is enabled**.
+- Flags are transmitted:
+  - **Immediately** after the consent dialog update (`onConsentUpdated`)
+  - Or **on SDK initialization** if consent has already been given
+- If logging is enabled:
+  - A **success message** will confirm the transmission.
+  - In case of errors, a **log error message** will appear.
+- Make sure you're using a **recent version of Firebase Analytics** in your project for best results.
+
+---
+
+### 🚀 Adjust, Airbridge, AppsFlyer
+
+If your project includes **any of these SDKs**:
+
+- ClickioConsentSDK will **automatically send** Google Consent Mode flags **if integration is enabled**.
+- ⚠️ Important:
+  - You must **initialize the third-party SDKs before** interacting with ClickioConsentSDK.
+  - ClickioConsentSDK **does not handle** SDK configuration—this is up to the developer.
+- With logging enabled:
+  - A **success log** confirms flag transmission.
+  - Errors will be shown in logs if transmission fails.
+- Keep your **Adjust**, **Airbridge**, or **AppsFlyer SDK** updated to ensure compatibility.
+
+---
+
+## Integration with Third-Party Libraries When Google Consent Mode Is Disabled
+
+If **Google Consent Mode integration is disabled**, you can manually determine user consent and set flags accordingly for other SDKs like Firebase Analytics.
+
+---
+
+### Firebase Analytics Example:
 
 ```dart
-final mode = await clickioConsentSdk.getGoogleConsentMode();
+final purpose1 = await clickioConsentSdk.getConsentForPurpose(purposeId: 1);
+final purpose3 = await clickioConsentSdk.getConsentForPurpose(purposeId: 3);
+final purpose4 = await clickioConsentSdk.getConsentForPurpose(purposeId: 4);
+final purpose7 = await clickioConsentSdk.getConsentForPurpose(purposeId: 7);
+final purpose8 = await clickioConsentSdk.getConsentForPurpose(purposeId: 8);
+final purpose9 = await clickioConsentSdk.getConsentForPurpose(purposeId: 9);
+
+final adStorage = purpose1;
+final adUserData = purpose1 && purpose7;
+final adPersonalization = purpose3 && purpose4;
+final analyticsStorage = purpose8 && purpose9;
+
+// ✅ Set Firebase Analytics consent flags
+await FirebaseAnalytics.instance.setConsent(
+  adStorageConsentGranted: adStorage,
+  adUserDataConsentGranted: adUserData,
+  adPersonalizationSignalsConsentGranted: adPersonalization,
+  analyticsStorageConsentGranted: analyticsStorage
+);
 ```
 
----
+📚 [More about Consent Mode flags mapping with TCF and non-TCF purposes](https://docs.clickio.com/books/clickio-consent-cmp/page/google-consent-mode-v2-implementation#bkmrk-5.1.-tcf-mode)

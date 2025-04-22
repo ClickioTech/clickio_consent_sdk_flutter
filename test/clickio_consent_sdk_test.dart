@@ -18,11 +18,6 @@ class MockClickioConsentSdkPlatform
   }
 
   @override
-  Future<void> onConsentUpdated() {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<String?> openDialog({
     DialogMode mode = DialogMode.defaultMode,
     required bool attNeeded,

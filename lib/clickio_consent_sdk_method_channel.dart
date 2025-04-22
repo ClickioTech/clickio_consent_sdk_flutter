@@ -33,11 +33,6 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   }
 
   @override
-  Future<void> onConsentUpdated() async {
-    await _methodChannel.invokeMethod('onConsentUpdated');
-  }
-
-  @override
   Future<String?> openDialog({
     required DialogMode mode,
     required bool showATTFirst,

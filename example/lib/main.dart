@@ -27,8 +27,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final indent = const SizedBox(height: 16);
-
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -72,8 +70,7 @@ class _MyAppState extends State<MyApp> {
                   ],
                 ),
               ),
-
-              indent,
+              const SizedBox(height: 16),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -122,14 +119,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> getConsentData() async {
-    _consentData = await getAndroidConsentData();
+    _consentData = await _getConsentData();
 
     setState(() {
       _consentData = _sortConsentData(_consentData);
     });
   }
 
-  Future<Map<String, String?>> getAndroidConsentData() async {
+  Future<Map<String, String?>> _getConsentData() async {
     final sdk = clickioConsentSdk;
     final futures = {
       'checkConsentScope': sdk.getConsentScope(),

@@ -1,29 +1,23 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'clickio_consent_sdk_platform_interface.dart';
-import 'dialog_mode.dart';
+import './clickio_consent_sdk_platform_interface.dart';
+import './enums/enums.dart';
+import './config/config.dart';
 
 /// An implementation of [ClickioConsentSdkPlatform] that uses method channels.
 class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   static const _methodChannel = MethodChannel('clickio_consent_sdk');
 
   @override
-  Future<String?> initialize({
-    required String appId,
-    required String language,
-  }) async {
+  Future<String?> initialize({required Config config}) async {
     try {
-      debugPrint(
-        'Initializing ClickioConsentSDK with appId=$appId, language=$language',
-      );
-
-      final result = await _methodChannel.invokeMethod('initialize', {
-        'appId': appId,
-        'language': language,
+      final result = await _methodChannel.invokeMethod<String>('initialize', {
+        'siteId': config.siteId,
+        'language': config.language,
       });
-
-      debugPrint(result);
 
       return result;
     } catch (e) {
@@ -34,50 +28,250 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   }
 
   @override
-  Future<String?> openDialog({required DialogMode mode}) async {
+  Future<void> setLogsMode({required LogsMode mode}) async {
+    await _methodChannel.invokeMethod('setLogsMode', {'mode': mode.name});
+  }
+
+  @override
+  Future<void> onConsentUpdated() async {
+    await _methodChannel.invokeMethod('onConsentUpdated');
+  }
+
+  @override
+  Future<String?> openDialog({
+    required DialogMode mode,
+    required bool showATTFirst,
+    required bool attNeeded,
+  }) async {
     try {
-      debugPrint('Opening consent dialog with mode: $mode');
+      final args = {
+        'mode': mode.name,
+        if (Platform.isIOS) ...{
+          'showATTFirst': showATTFirst,
+          'attNeeded': attNeeded,
+        },
+      };
 
-      final result = await _methodChannel.invokeMethod('openDialog', {
-        'mode': mode.name == 'defaultMode' ? 'resurfaceMode' : mode.name,
-      });
-
-      debugPrint(result);
+      final result = await _methodChannel.invokeMethod<String>(
+        'openDialog',
+        args,
+      );
 
       return result;
     } catch (e) {
       debugPrint('Error opening consent dialog - $e');
+
       return null;
     }
   }
 
-  @override
-  Future<Map<String, String?>> getConsentData() async {
+  Future<String?> getConsentScope() async {
     try {
-      final result = await _methodChannel.invokeMethod('getConsentData');
+      final result = await _methodChannel.invokeMethod('getConsentScope');
 
-      if (result is Map) {
-        debugPrint('Consent Data Map: $result');
-
-        // Convert the Map<Object?, Object?> to Map<String, String?>
-        final consentData = <String, String?>{};
-
-        result.forEach((key, value) {
-          // Ensure the key is a String and value is a String or null
-          if (key is String) {
-            // Convert value to String if it's not null
-            consentData[key] = value?.toString();
-          }
-        });
-
-        return consentData;
-      }
-
-      return {};
+      return result;
     } catch (e) {
-      debugPrint('Error retrieving consent data - $e');
+      debugPrint('Error retrieving consent scope - $e');
 
-      return {};
+      return null;
+    }
+  }
+
+  Future<String?> getConsentState() async {
+    try {
+      final result = await _methodChannel.invokeMethod('getConsentState');
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consent state - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentForPurpose({required int purposeId}) async {
+    try {
+      final result = await _methodChannel.invokeMethod('getConsentForPurpose', {
+        'id': purposeId,
+      });
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consent for purpose - $e');
+      return null;
+    }
+  }
+
+  Future<String?> getConsentForVendor({required int vendorId}) async {
+    try {
+      final result = await _methodChannel.invokeMethod('getConsentForVendor', {
+        'id': vendorId,
+      });
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consent for vendor - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getTCString() async {
+    try {
+      final result = await _methodChannel.invokeMethod('getTCString');
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving TC String - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getACString() async {
+    try {
+      final result = await _methodChannel.invokeMethod('getACString');
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving AC String - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getGPPString() async {
+    try {
+      final result = await _methodChannel.invokeMethod('getGPPString');
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving GPP String - $e');
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedTCFVendors() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedTCFVendors',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented TCF vendors - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedTCFLiVendors() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedTCFLiVendors',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented TCF Li vendors - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedTCFPurposes() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedTCFPurposes',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented TCF purposes - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedTCFLiPurposes() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedTCFLiPurposes',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented TCF Li purposes - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedGoogleVendors() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedGoogleVendors',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented Google vendors - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedOtherVendors() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedOtherVendors',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented other vendors - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedOtherLiVendors() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedOtherLiVendors',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented other Li vendors - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getConsentedNonTcfPurposes() async {
+    try {
+      final result = await _methodChannel.invokeMethod(
+        'getConsentedNonTcfPurposes',
+      );
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving consented non-TCF purposes - $e');
+
+      return null;
+    }
+  }
+
+  Future<String?> getGoogleConsentMode() async {
+    try {
+      final result = await _methodChannel.invokeMethod('getGoogleConsentMode');
+
+      return result;
+    } catch (e) {
+      debugPrint('Error retrieving Google consent mode - $e');
+
+      return null;
     }
   }
 }

@@ -1,0 +1,35 @@
+PODS:
+  - clickio_consent_sdk (1.0.0):
+    - ClickioConsentSDKManager (= 0.0.1)
+    - Flutter
+  - ClickioConsentSDKManager (0.0.1)
+  - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - clickio_consent_sdk (from `.symlinks/plugins/clickio_consent_sdk/ios`)
+  - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+
+SPEC REPOS:
+  trunk:
+    - ClickioConsentSDKManager
+
+EXTERNAL SOURCES:
+  clickio_consent_sdk:
+    :path: ".symlinks/plugins/clickio_consent_sdk/ios"
+  Flutter:
+    :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+
+SPEC CHECKSUMS:
+  clickio_consent_sdk: 59a7bb86cb2450e3db6fdd0fbe9a0f6a66c6b542
+  ClickioConsentSDKManager: cdeb9e1c9042ee4ae0ec0bc311dc966a2ce59368
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+
+PODFILE CHECKSUM: 53a6aebc29ccee84c41f92f409fc20cd4ca011f1
+
+COCOAPODS: 1.16.2

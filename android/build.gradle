@@ -26,7 +26,6 @@ apply plugin: "kotlin-android"
 
 android {
     namespace = "com.clickio.clickio_consent_sdk"
-
     compileSdk = 35
 
     compileOptions {
@@ -66,5 +65,5 @@ android {
 }
 
 dependencies {
-    implementation("com.clickio:clickioconsentsdk:1.0.0-rc2")
+    implementation("com.clickio:clickioconsentsdk:1.0.0-rc5")
 }

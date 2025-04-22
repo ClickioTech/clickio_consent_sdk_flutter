@@ -1,19 +1,255 @@
+import ClickioConsentSDKManager
 import Flutter
 import UIKit
 
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "clickio_consent_sdk", binaryMessenger: registrar.messenger())
+    let channel = FlutterMethodChannel(
+      name: "clickio_consent_sdk", binaryMessenger: registrar.messenger())
     let instance = ClickioConsentSdkPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
-    case "getPlatformVersion":
-      result("iOS " + UIDevice.current.systemVersion)
+    case "initialize":
+      self.initializeConsentSDK(call: call, result: result)
+    case "setLogsMode":
+      self.setLogsMode(call, result: result)
+    case "openDialog":
+      guard
+        let controller = UIApplication.shared.windows.first(where: \.isKeyWindow)?
+          .rootViewController
+      else {
+        result(
+          FlutterError(
+            code: "NO_VIEW_CONTROLLER",
+            message: "Root view controller not found",
+            details: nil))
+        return
+      }
+      self.openDialog(call: call, viewController: controller, result: result)
+    case "getConsentScope":
+      self.getConsentScope(result: result)
+    case "getConsentState":
+      self.getConsentState(result: result)
+    case "getConsentForPurpose":
+      self.getConsentForPurpose(call: call, result: result)
+    case "getConsentForVendor":
+      self.getConsentForVendor(call: call, result: result)
+    case "getTCString":
+      self.getTCString(result: result)
+    case "getACString":
+      self.getACString(result: result)
+    case "getGPPString":
+      self.getGPPString(result: result)
+    case "getConsentedTCFVendors":
+      self.getConsentedTCFVendors(result: result)
+    case "getConsentedTCFLiVendors":
+      self.getConsentedTCFLiVendors(result: result)
+    case "getConsentedTCFPurposes":
+      self.getConsentedTCFPurposes(result: result)
+    case "getConsentedTCFLiPurposes":
+      self.getConsentedTCFLiPurposes(result: result)
+    case "getConsentedGoogleVendors":
+      self.getConsentedGoogleVendors(result: result)
+    case "getConsentedOtherVendors":
+      self.getConsentedOtherVendors(result: result)
+    case "getConsentedOtherLiVendors":
+      self.getConsentedOtherLiVendors(result: result)
+    case "getConsentedNonTcfPurposes":
+      self.getConsentedNonTcfPurposes(result: result)
+    case "getGoogleConsentMode":
+      self.getGoogleConsentMode(result: result)
     default:
+      print("Unsupported method: \(call.method)")
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  private func initializeConsentSDK(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    let args = call.arguments as? [String: Any]
+    let siteId = args?["siteId"] as? String ?? ""
+    let language = args?["language"] as? String ?? "en"
+
+    if siteId.isEmpty {
+      result(FlutterError(code: "MISSING_ARGUMENTS", message: "'siteId' is required", details: nil))
+      return
+    }
+
+    let config = ClickioConsentSDK.Config(siteId: siteId, appLanguage: language)
+
+    Task {
+      do {
+        await ClickioConsentSDK.shared.initialize(configuration: config)
+        result("ClickioConsentSDK initialized successfully")
+      } catch {
+        result(
+          FlutterError(
+            code: "INITIALIZATION_ERROR",
+            message: "Failed to initialize ClickioConsentSDK",
+            details: error.localizedDescription))
+      }
+    }
+  }
+
+  private func setLogsMode(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard let args = call.arguments as? [String: Any],
+      let logMode = args["mode"] as? String
+    else {
+      return result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "Missing or invalid arguments for setLogsMode",
+          details: nil))
+    }
+
+    let mode: EventLogger.Mode
+
+    switch logMode {
+    case "verbose":
+      mode = .verbose
+    case "disabled":
+      mode = .disabled
+    default:
+      return result(
+        FlutterError(
+          code: "INVALID_MODE",
+          message: "Invalid logging mode: \(logMode)",
+          details: nil))
+    }
+
+    ClickioConsentSDK.shared.setLogsMode(mode)
+
+    result(nil)
+  }
+
+  private func openDialog(
+    call: FlutterMethodCall, viewController: UIViewController, result: @escaping FlutterResult
+  ) {
+    guard let args = call.arguments as? [String: Any],
+      let dialogMode = args["mode"] as? String,
+      let showATTFirst = args["showATTFirst"] as? Bool,
+      let attNeeded = args["attNeeded"] as? Bool
+    else {
+      return result(
+        FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid dialog parameters", details: nil))
+    }
+
+    let mode: ClickioConsentSDK.DialogMode = dialogMode == "resurface" ? .resurface : .default
+
+    DispatchQueue.main.async {
+      do {
+        try ClickioConsentSDK.shared.openDialog(
+          mode: mode,
+          in: viewController,
+          showATTFirst: showATTFirst,
+          attNeeded: attNeeded
+        )
+
+        result("Consent Dialog Opened")
+      } catch {
+        result(
+          FlutterError(
+            code: "OPEN_DIALOG_ERROR",
+            message: "Failed to open Clickio Consent dialog",
+            details: error.localizedDescription))
+      }
+    }
+  }
+
+  private func getConsentScope(result: FlutterResult) {
+    result(ClickioConsentSDK.shared.checkConsentScope())
+  }
+
+  private func getConsentState(result: FlutterResult) {
+    if let consentState = ClickioConsentSDK.shared.checkConsentState() {
+      result(consentState.rawValue)
+    } else {
+      result(
+        FlutterError(
+          code: "CONSENT_STATE_ERROR",
+          message: "Failed to retrieve consent state",
+          details: nil
+        ))
+    }
+  }
+
+  private func getConsentForPurpose(call: FlutterMethodCall, result: FlutterResult) {
+    guard let args = call.arguments as? [String: Any],
+      let purposeId = args["id"] as? Int
+    else {
+      result(FlutterError(code: "ARGUMENT_ERROR", message: "Missing purposeId", details: nil))
+      return
+    }
+
+    result(ClickioConsentSDK.shared.checkConsentForPurpose(purposeId: purposeId)?.description)
+  }
+
+  private func getConsentForVendor(call: FlutterMethodCall, result: FlutterResult) {
+    guard let args = call.arguments as? [String: Any],
+      let vendorId = args["id"] as? Int
+    else {
+      result(FlutterError(code: "ARGUMENT_ERROR", message: "Missing vendorId", details: nil))
+      return
+    }
+
+    result(ClickioConsentSDK.shared.checkConsentForVendor(vendorId: vendorId)?.description)
+  }
+
+  private func getTCString(result: FlutterResult) {
+    result(ExportData().getTCString())
+  }
+
+  private func getACString(result: FlutterResult) {
+    result(ExportData().getACString())
+  }
+
+  private func getGPPString(result: FlutterResult) {
+    result(ExportData().getGPPString())
+  }
+
+  private func getConsentedTCFVendors(result: FlutterResult) {
+    result(ExportData().getConsentedTCFVendors()?.description)
+  }
+
+  private func getConsentedTCFLiVendors(result: FlutterResult) {
+    result(ExportData().getConsentedTCFLiVendors()?.description)
+  }
+
+  private func getConsentedTCFPurposes(result: FlutterResult) {
+    result(ExportData().getConsentedTCFPurposes()?.description)
+  }
+
+  private func getConsentedTCFLiPurposes(result: FlutterResult) {
+    result(ExportData().getConsentedTCFLiPurposes()?.description)
+  }
+
+  private func getConsentedGoogleVendors(result: FlutterResult) {
+    result(ExportData().getConsentedGoogleVendors()?.description)
+  }
+
+  private func getConsentedOtherVendors(result: FlutterResult) {
+    result(ExportData().getConsentedOtherVendors()?.description)
+  }
+
+  private func getConsentedOtherLiVendors(result: FlutterResult) {
+    result(ExportData().getConsentedOtherLiVendors()?.description)
+  }
+
+  private func getConsentedNonTcfPurposes(result: FlutterResult) {
+    result(ExportData().getConsentedNonTcfPurposes()?.description)
+  }
+
+  private func getGoogleConsentMode(result: FlutterResult) {
+    let googleConsent = ExportData().getGoogleConsentMode()
+    let formatted = """
+      Analytics Storage: \(googleConsent?.analyticsStorageGranted ?? false),
+      Ad Storage: \(googleConsent?.adStorageGranted ?? false),
+      Ad User Data: \(googleConsent?.adUserDataGranted ?? false),
+      Ad Personalization: \(googleConsent?.adPersonalizationGranted ?? false)
+      """
+
+    result(formatted)
   }
 }

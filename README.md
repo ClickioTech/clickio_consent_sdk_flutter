@@ -87,8 +87,9 @@ final clickioConsentSdk = ClickioConsentSdk();
 final config = Config(siteId: 'your_clickio_site_id');
 
 Future<void> initializeSdk() async {
-  await clickioConsentSdk.initialize(config: config);
   await clickioConsentSdk.setLogsMode(mode: LogsMode.verbose);
+  await clickioConsentSdk.initialize(config: config);
+ 
 }
 ```
 
@@ -371,7 +372,7 @@ Returns the IDs of non-TCF purposes (simplified purposes) that have given consen
 ---
 
 ### `getGoogleConsentMode() → Future<GoogleConsentStatus?>`
-Returns the Google Consent Mode v2 status if enabled. Otherwise returns `null`.
+Returns Google Consent Mode v2 flags wrapped into `GoogleConsentStatus` struct if Google Consent Mode enabled, otherwise will return `false`.
 
 #### GoogleConsentStatus:
 ```dart
@@ -394,10 +395,6 @@ class GoogleConsentStatus {
 - `adStorageGranted` — Consent for ad storage  
 - `adUserDataGranted` — Consent for processing user data for ads  
 - `adPersonalizationGranted` — Consent for ad personalization  
-
----
-
-Sure! Here's a **fancy documentation block** with headings, bullet points, and formatting for clarity and visual appeal:
 
 ---
 
@@ -464,7 +461,7 @@ final adUserData = purpose1 && purpose7;
 final adPersonalization = purpose3 && purpose4;
 final analyticsStorage = purpose8 && purpose9;
 
-// ✅ Set Firebase Analytics consent flags
+// Set Firebase Analytics consent flags
 await FirebaseAnalytics.instance.setConsent(
   adStorageConsentGranted: adStorage,
   adUserDataConsentGranted: adUserData,

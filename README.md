@@ -427,16 +427,17 @@ If the **Firebase Analytics SDK** is present in your project:
 
 ### 🚀 Adjust, Airbridge, AppsFlyer
 
-If your project includes **any of these SDKs**:
+If your project includes any of these SDKs **(Adjust, Airbridge, AppsFlyer)**, `ClickioConsentSDK` will automatically send Google Consent flags to them if _Clickio Google Consent Mode_ integration is **enabled**.
 
-- ClickioConsentSDK will **automatically send** Google Consent Mode flags **if integration is enabled**.
-- ⚠️ Important:
-  - You must **initialize the third-party SDKs before** interacting with ClickioConsentSDK.
-  - ClickioConsentSDK **does not handle** SDK configuration—this is up to the developer.
-- With logging enabled:
-  - A **success log** confirms flag transmission.
-  - Errors will be shown in logs if transmission fails.
-- Keep your **Adjust**, **Airbridge**, or **AppsFlyer SDK** updated to ensure compatibility.
+#### ⚠️ Important:
+  - Interactions with `ClickioConsentSDK` should be performed **after initializing the third-party SDKs** since `ClickioConsentSDK` only transmits consent flags.
+  - **Ensure** that you have completed the required tracking setup for Adjust, Airbridge, or AppsFlyer before integrating `ClickioConsentSDK`. This includes proper initialization and configuration of the SDK according to the vendor’s documentation.
+  - If you're using **AppsFlyer** and need to support GDPR compliance via TCF, make sure to enable TCF data collection before SDK initialization: `enableTCFDataCollection(true)`. This allows AppsFlyer to automatically gather consent values (like `tcString`) from the CMP.
+
+After successfully transmitting the flags, a log message will be displayed **(if logging is enabled)** to confirm the successful transmission. In case of an error, an error message will appear in the logs.
+
+> 💡 **Note:** Keep your **Adjust**, **Airbridge**, or **AppsFlyer SDK** updated to ensure compatibility.
+
 
 ---
 

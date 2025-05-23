@@ -87,8 +87,9 @@ final clickioConsentSdk = ClickioConsentSdk();
 final config = Config(siteId: 'your_clickio_site_id');
 
 Future<void> initializeSdk() async {
-  await clickioConsentSdk.initialize(config: config);
   await clickioConsentSdk.setLogsMode(mode: LogsMode.verbose);
+  await clickioConsentSdk.initialize(config: config);
+ 
 }
 ```
 
@@ -97,7 +98,6 @@ After initialization, open the consent window like this:
 ```dart
 await clickioConsentSdk.openDialog(
   mode: DialogMode.resurfaceMode,
-  showATTFirst: true,
   attNeeded: true,
 );
 ```
@@ -110,12 +110,15 @@ await clickioConsentSdk.openDialog(
 
 ### App Tracking Transparency (ATT) Permission
 
-`Clickio SDK` supports [three](#example-scenarios) distinct scenarios for handling ATT permissions If your app collects and shares user data with third parties for tracking across apps or websites, **you must**:
+`Clickio SDK` supports [two distinct scenarios](#example-scenarios) for handling ATT permissions If your app collects and shares user data with third parties for tracking across apps or websites, **you must**:
 
 1. Add the [`NSUserTrackingUsageDescription`](https://developer.apple.com/documentation/BundleResources/Information-Property-List/NSUserTrackingUsageDescription) key in your `Info.plist`.
 2. Choose an ATT permission handling strategy using the [`openDialog`](#opening-the-consent-dialog) method.
 
 If you're managing ATT permissions manually and have already added [`NSUserTrackingUsageDescription`](https://developer.apple.com/documentation/BundleResources/Information-Property-List/NSUserTrackingUsageDescription), you can skip ATT integration here and just use the consent flow.
+
+#### Important:
+- **make sure that user has given permission in the ATT dialog and only then perfrom [`openDialog`](#opening-the-consent-dialog) method call! Showing CMP regardles given ATT Permission is not recommended by Apple. Moreover, [`openDialog`](#opening-the-consent-dialog) API call can be blocked by Apple until user makes their choice.**
 
 👉 See [User Privacy and Data Use](https://developer.apple.com/app-store/user-privacy-and-data-use/) and [App Privacy Details](https://developer.apple.com/app-store/app-privacy-details/) for more details.
 
@@ -165,7 +168,6 @@ To open the consent dialog:
 ```dart
 await clickioConsentSdk.openDialog(
   mode: DialogMode.resurface, // or DialogMode.defaultMode
-  showATTFirst: true,
   attNeeded: true,
 );
 ```
@@ -174,10 +176,9 @@ await clickioConsentSdk.openDialog(
 - `mode` - defines when the dialog should be shown. Possible values::
   - `DialogMode.defaultMode` –  Opens the dialog if GDPR applies and user hasn't given consent.
   - `DialogMode.resurface` – Always forces dialog to open, regardless of the user’s jurisdiction, allowing users to modify settings for GDPR compliance or to opt out under US regulations.
-- `showATTFirst`: Show ATT prompt **before** consent dialog.
 - `attNeeded`: Determines if ATT is required.
 
-> 💡 If your app has it's own ATT Permission manager you just pass `false` in `showATTFirst` & `attNeeded` parameters and call your own ATT method. Keep in mind that in this case consent screen will be shown regardless given ATT Permission.
+> 💡 If your app has it's own ATT Permission manager you just pass `false` in `attNeeded` parameter and call your own ATT method. Keep in mind that in this case consent screen will be shown regardless given ATT Permission.
 
 ---
 
@@ -189,32 +190,23 @@ await clickioConsentSdk.openDialog(
 ```dart
 await clickioConsentSdk.openDialog(
   mode: DialogMode.defaultMode,
-  showATTFirst: true,
   attNeeded: true,
 );
 ```
 
-**2. Show Consent Dialog first, then show ATT Permission regardless user choice in the Consent Dialog:**
+**2. Show only Consent Dialog bypassing ATT Permission demonstration:**
 
 ```dart
 await clickioConsentSdk.openDialog(
   mode: DialogMode.defaultMode,
-  showATTFirst: false,
-  attNeeded: true,
-);
-```
-
-**3. Show only Consent Dialog bypassing ATT Permission demonstration:**
-
-```dart
-await clickioConsentSdk.openDialog(
-  mode: DialogMode.defaultMode,
-  showATTFirst: false,
   attNeeded: false,
 );
 ```
 
-#### Note: we suggest you to use this approach only if you handle ATT Permission on your own.
+#### Important:
+- **we suggest you to use this approach only if you handle ATT Permission on your own.**
+- **make sure that user has given permission in the ATT dialog and only then perfrom [`openDialog`](#opening-the-consent-dialog) method call! Otherwise it will lead to incorrect work of the SDK: showing CMP regardles given ATT Permission is not recommended by Apple. Moreover, [`openDialog`](#opening-the-consent-dialog) API calls to SDK's domains will be blocked by Apple until user provides their permission in ATT dialog.**
+
 
 ---
 
@@ -371,7 +363,7 @@ Returns the IDs of non-TCF purposes (simplified purposes) that have given consen
 ---
 
 ### `getGoogleConsentMode() → Future<GoogleConsentStatus?>`
-Returns the Google Consent Mode v2 status if enabled. Otherwise returns `null`.
+Returns Google Consent Mode v2 flags wrapped into `GoogleConsentStatus` struct if Google Consent Mode enabled, otherwise will return `false`.
 
 #### GoogleConsentStatus:
 ```dart
@@ -394,10 +386,6 @@ class GoogleConsentStatus {
 - `adStorageGranted` — Consent for ad storage  
 - `adUserDataGranted` — Consent for processing user data for ads  
 - `adPersonalizationGranted` — Consent for ad personalization  
-
----
-
-Sure! Here's a **fancy documentation block** with headings, bullet points, and formatting for clarity and visual appeal:
 
 ---
 
@@ -430,16 +418,17 @@ If the **Firebase Analytics SDK** is present in your project:
 
 ### 🚀 Adjust, Airbridge, AppsFlyer
 
-If your project includes **any of these SDKs**:
+If your project includes any of these SDKs **(Adjust, Airbridge, AppsFlyer)**, `ClickioConsentSDK` will automatically send Google Consent flags to them if _Clickio Google Consent Mode_ integration is **enabled**.
 
-- ClickioConsentSDK will **automatically send** Google Consent Mode flags **if integration is enabled**.
-- ⚠️ Important:
-  - You must **initialize the third-party SDKs before** interacting with ClickioConsentSDK.
-  - ClickioConsentSDK **does not handle** SDK configuration—this is up to the developer.
-- With logging enabled:
-  - A **success log** confirms flag transmission.
-  - Errors will be shown in logs if transmission fails.
-- Keep your **Adjust**, **Airbridge**, or **AppsFlyer SDK** updated to ensure compatibility.
+#### ⚠️ Important:
+  - Interactions with `ClickioConsentSDK` should be performed **after initializing the third-party SDKs** since `ClickioConsentSDK` only transmits consent flags.
+  - **Ensure** that you have completed the required tracking setup for Adjust, Airbridge, or AppsFlyer before integrating `ClickioConsentSDK`. This includes proper initialization and configuration of the SDK according to the vendor’s documentation.
+  - If you're using **AppsFlyer** and need to support GDPR compliance via TCF, make sure to enable TCF data collection before SDK initialization: `enableTCFDataCollection(true)`. This allows AppsFlyer to automatically gather consent values (like `tcString`) from the CMP.
+
+After successfully transmitting the flags, a log message will be displayed **(if logging is enabled)** to confirm the successful transmission. In case of an error, an error message will appear in the logs.
+
+> 💡 **Note:** Keep your **Adjust**, **Airbridge**, or **AppsFlyer SDK** updated to ensure compatibility.
+
 
 ---
 
@@ -464,7 +453,7 @@ final adUserData = purpose1 && purpose7;
 final adPersonalization = purpose3 && purpose4;
 final analyticsStorage = purpose8 && purpose9;
 
-// ✅ Set Firebase Analytics consent flags
+// Set Firebase Analytics consent flags
 await FirebaseAnalytics.instance.setConsent(
   adStorageConsentGranted: adStorage,
   adUserDataConsentGranted: adUserData,
@@ -474,3 +463,72 @@ await FirebaseAnalytics.instance.setConsent(
 ```
 
 📚 [More about Consent Mode flags mapping with TCF and non-TCF purposes](https://docs.clickio.com/books/clickio-consent-cmp/page/google-consent-mode-v2-implementation#bkmrk-5.1.-tcf-mode)
+
+---
+
+### Delaying Ad Display until ATT and User Consent
+
+Sometimes you need to ensure that both Apple's App Tracking Transparency prompt and user consent decision have been recorded before initializing and loading Google Mobile Ads. To implement this flow:
+
+1. Wait for ATT authorization and CMP readiness
+		- First present the ATT prompt.
+		- Then open Clickio SDK's consent dialog via `ClickioConsentSDK.openDialog()`.
+2. Initialize and load ads only after consent
+		- Eensure that `checkConsentState() != gdprNoDecision` has been confirmed.
+		Then call `MobileAds.shared.start(...)` and load your banner.
+This ensures that Google Mobile Ads is only started—and the banner only fetched—once you've obtained both ATT permission and explicit user decision from the CMP.
+
+#### Code example:
+
+```dart
+void initializeConsentAndAds() async {
+    // Check previous user decision before showing Google Ads
+    final consentState = await ClickioConsentSDK.checkConsentState();
+    
+    if (consentState != ConsentState.gdprNoDecision) {
+      // Load your ad here
+      await MobileAds.instance.initialize().then((_) {
+        print("Google Ads initialized and ready");
+
+        BannerAd(
+          adUnitId: 'your-ad-unit-id',
+          size: AdSize.banner,
+          request: AdRequest(),
+          listener: BannerAdListener(
+            onAdLoaded: (_) => print('Banner loaded'),
+            onAdFailedToLoad: (ad, error) {
+              print('Ad load failed: $error');
+              ad.dispose();
+            },
+          ),
+        ).load();
+      });
+    }
+
+    // Open CMP Dialog
+    await ClickioConsentSDK.openDialog(mode: 'resurface', attNeeded: true);
+
+    // Check user decision after updated consent
+    final consentState = await ClickioConsentSDK.checkConsentState();
+
+    if (consentState != ConsentState.gdprNoDecision) {
+      // Load your ad here
+      await MobileAds.instance.initialize().then((_) {
+        print("Google Ads initialized and ready (onConsentUpdated)");
+
+        BannerAd(
+          adUnitId: 'your-ad-unit-id',
+          size: AdSize.banner,
+          request: AdRequest(),
+          listener: BannerAdListener(
+            onAdLoaded: (_) => print('Banner loaded'),
+            onAdFailedToLoad: (ad, error) {
+              print('Ad load failed: $error');
+              ad.dispose();
+            },
+          ),
+        ).load();
+      });
+    }
+}
+```

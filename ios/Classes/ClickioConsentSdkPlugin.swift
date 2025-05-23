@@ -2,6 +2,7 @@ import ClickioConsentSDKManager
 import Flutter
 import UIKit
 
+
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(
@@ -10,6 +11,7 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
+  @MainActor
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "initialize":
@@ -83,16 +85,11 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
       do {
         await ClickioConsentSDK.shared.initialize(configuration: config)
         result("ClickioConsentSDK initialized successfully")
-      } catch {
-        result(
-          FlutterError(
-            code: "INITIALIZATION_ERROR",
-            message: "Failed to initialize ClickioConsentSDK",
-            details: error.localizedDescription))
       }
     }
   }
 
+  @MainActor
   private func setLogsMode(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let args = call.arguments as? [String: Any],
       let logMode = args["mode"] as? String
@@ -124,12 +121,12 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
     result(nil)
   }
 
+  @MainActor
   private func openDialog(
     call: FlutterMethodCall, viewController: UIViewController, result: @escaping FlutterResult
   ) {
     guard let args = call.arguments as? [String: Any],
       let dialogMode = args["mode"] as? String,
-      let showATTFirst = args["showATTFirst"] as? Bool,
       let attNeeded = args["attNeeded"] as? Bool
     else {
       return result(
@@ -140,28 +137,23 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
 
     DispatchQueue.main.async {
       do {
-        try ClickioConsentSDK.shared.openDialog(
+        ClickioConsentSDK.shared.openDialog(
           mode: mode,
           in: viewController,
-          showATTFirst: showATTFirst,
           attNeeded: attNeeded
         )
 
         result("Consent Dialog Opened")
-      } catch {
-        result(
-          FlutterError(
-            code: "OPEN_DIALOG_ERROR",
-            message: "Failed to open Clickio Consent dialog",
-            details: error.localizedDescription))
       }
     }
   }
-
+    
+  @MainActor
   private func getConsentScope(result: FlutterResult) {
     result(ClickioConsentSDK.shared.checkConsentScope())
   }
 
+  @MainActor
   private func getConsentState(result: FlutterResult) {
     if let consentState = ClickioConsentSDK.shared.checkConsentState() {
       result(consentState.rawValue)
@@ -175,6 +167,7 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
     }
   }
 
+  @MainActor
   private func getConsentForPurpose(call: FlutterMethodCall, result: FlutterResult) {
     guard let args = call.arguments as? [String: Any],
       let purposeId = args["id"] as? Int
@@ -186,6 +179,7 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
     result(ClickioConsentSDK.shared.checkConsentForPurpose(purposeId: purposeId)?.description)
   }
 
+  @MainActor
   private func getConsentForVendor(call: FlutterMethodCall, result: FlutterResult) {
     guard let args = call.arguments as? [String: Any],
       let vendorId = args["id"] as? Int

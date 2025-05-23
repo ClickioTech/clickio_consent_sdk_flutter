@@ -34,14 +34,9 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
 
   Future<void> openDialog({
     required DialogMode mode,
-    required bool showATTFirst,
     required bool attNeeded,
   }) async {
-    return _instance.openDialog(
-      mode: mode,
-      showATTFirst: showATTFirst,
-      attNeeded: attNeeded,
-    );
+    return _instance.openDialog(mode: mode, attNeeded: attNeeded);
   }
 
   Future<String?> getConsentScope() async {

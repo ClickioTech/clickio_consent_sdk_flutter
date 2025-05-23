@@ -11,10 +11,11 @@ Pod::Spec.new do |s|
   s.author                = { 'Clickio' => 'app-dev@clickio.com' }
   s.source                = { :git => "https://github.com/ClickioTech/clickio_consent_sdk_flutter.git", :tag => "#{s.version}" }
 
-  s.ios.deployment_target = '15.0'         
+  s.ios.deployment_target = '15.0'    
+  s.swift_version = '5.0'     
 
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'ClickioConsentSDKManager', '0.0.1'
+  s.dependency 'ClickioConsentSDKManager', '1.0.6-rc'
 end

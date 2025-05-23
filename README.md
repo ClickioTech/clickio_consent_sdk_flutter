@@ -8,7 +8,8 @@ A Flutter plugin that wraps the native Clickio Consent SDK for Android and iOS, 
 4. [Setup and Usage](#setup-and-usage)
 5. [Methods](#methods)
 6. [Integration with Third-Party Libraries for Google Consent Mode](#integration-with-third-party-libraries-for-google-consent-mode)
-7. [Integration with Third-Party Libraries When Google Consent Mode Is Disabled](#⚙️-integration-with-third-party-libraries-when-google-consent-mode-is-disabled)
+7. [Integration with Third-Party Libraries When Google Consent Mode Is Disabled](#integration-with-third-party-libraries-when-google-consent-mode-is-disabled)
+8. [Delaying Ad Display until ATT and User Consent](#delaying-ad-display-until-att-and-user-consent)
 
 ## Requirements
 
@@ -466,7 +467,7 @@ await FirebaseAnalytics.instance.setConsent(
 
 ---
 
-### Delaying Ad Display until ATT and User Consent
+## Delaying Ad Display until ATT and User Consent
 
 Sometimes you need to ensure that both Apple's App Tracking Transparency prompt and user consent decision have been recorded before initializing and loading Google Mobile Ads. To implement this flow:
 
@@ -478,7 +479,7 @@ Sometimes you need to ensure that both Apple's App Tracking Transparency prompt 
 		Then call `MobileAds.shared.start(...)` and load your banner.
 This ensures that Google Mobile Ads is only started—and the banner only fetched—once you've obtained both ATT permission and explicit user decision from the CMP.
 
-#### Code example:
+### Code example:
 
 ```dart
 void initializeConsentAndAds() async {

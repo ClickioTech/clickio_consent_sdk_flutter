@@ -21,7 +21,6 @@ class MockClickioConsentSdkPlatform
   Future<String?> openDialog({
     DialogMode mode = DialogMode.defaultMode,
     required bool attNeeded,
-    required bool showATTFirst,
   }) async {
     throw UnimplementedError();
   }

@@ -33,16 +33,13 @@ class ClickioConsentSdk {
   /// You can customize the dialog's mode and whether the App Tracking Transparency (ATT) dialog should be shown first.
   ///
   /// [mode] - The dialog mode to be used. Defaults to [DialogMode.defaultMode].
-  /// [showATTFirst] - A flag to specify whether to show the ATT dialog first. Defaults to `false`.
   /// [attNeeded] - A flag indicating whether ATT consent is needed. Defaults to `false`.
   Future<void> openDialog({
     DialogMode mode = DialogMode.defaultMode,
-    bool showATTFirst = false,
     bool attNeeded = false,
   }) async {
     return ClickioConsentSdkPlatform.instance.openDialog(
       mode: mode,
-      showATTFirst: showATTFirst,
       attNeeded: attNeeded,
     );
   }

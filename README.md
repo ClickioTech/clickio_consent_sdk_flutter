@@ -472,11 +472,11 @@ await FirebaseAnalytics.instance.setConsent(
 Sometimes you need to ensure that both Apple's App Tracking Transparency prompt and user consent decision have been recorded before initializing and loading Google Mobile Ads. To implement this flow:
 
 1. Wait for ATT authorization and CMP readiness
-		- First present the ATT prompt.
-		- Then open Clickio SDK's consent dialog via `ClickioConsentSDK.openDialog()`.
+	- First present the ATT prompt.
+	- Then open Clickio SDK's consent dialog via `ClickioConsentSDK.openDialog()`.
 2. Initialize and load ads only after consent
-		- Eensure that `checkConsentState() != gdprNoDecision` has been confirmed.
-		Then call `MobileAds.shared.start(...)` and load your banner.
+	- Eensure that `checkConsentState() != gdprNoDecision` has been confirmed.
+	- Then call `MobileAds.shared.start(...)` and load your banner.
 This ensures that Google Mobile Ads is only started—and the banner only fetched—once you've obtained both ATT permission and explicit user decision from the CMP.
 
 ### Code example:

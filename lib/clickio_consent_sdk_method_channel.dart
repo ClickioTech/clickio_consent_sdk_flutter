@@ -35,16 +35,12 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   @override
   Future<String?> openDialog({
     required DialogMode mode,
-    required bool showATTFirst,
     required bool attNeeded,
   }) async {
     try {
       final args = {
         'mode': mode.name,
-        if (Platform.isIOS) ...{
-          'showATTFirst': showATTFirst,
-          'attNeeded': attNeeded,
-        },
+        if (Platform.isIOS) ...{'attNeeded': attNeeded},
       };
 
       final result = await _methodChannel.invokeMethod<String>(

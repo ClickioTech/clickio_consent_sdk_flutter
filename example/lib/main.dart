@@ -47,12 +47,23 @@ class _MyAppState extends State<MyApp> {
                   children: [
                     const SizedBox(height: 16),
                     ElevatedButton(
+                      onPressed: openDialogInDefaultMode,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(12, 20, 67, 1.0),
+                      ),
+                      child: const Text(
+                        'Default Mode',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ElevatedButton(
                       onPressed: openDialog,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color.fromRGBO(12, 20, 67, 1.0),
                       ),
                       child: const Text(
-                        'Open Consent Window',
+                        'Resurface Mode',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -67,6 +78,17 @@ class _MyAppState extends State<MyApp> {
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
+                    // const SizedBox(height: 4),
+                    // ElevatedButton(
+                    //   onPressed: () {},
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor: const Color.fromRGBO(12, 20, 67, 1.0),
+                    //   ),
+                    //   child: const Text(
+                    //     'Clear cache',
+                    //     style: TextStyle(color: Colors.white),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -106,16 +128,18 @@ class _MyAppState extends State<MyApp> {
   Future<void> initializeSdk() async {
     await clickioConsentSdk.setLogsMode(mode: LogsMode.verbose);
     await clickioConsentSdk.initialize(config: config);
+    await clickioConsentSdk.openDialog(attNeeded: true);
+  }
+
+  Future<void> openDialogInDefaultMode() async {
+    await clickioConsentSdk.openDialog();
   }
 
   Future<void> openDialog() async {
     await clickioConsentSdk.openDialog(
       mode: DialogMode.resurface,
-      showATTFirst: true,
       attNeeded: true,
     );
-
-    await getConsentData();
   }
 
   Future<void> getConsentData() async {

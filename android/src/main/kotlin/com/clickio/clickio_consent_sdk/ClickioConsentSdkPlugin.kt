@@ -53,7 +53,17 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
         val language = call.argument<String>("language") ?: "en"
         val config = Config(siteId, language)
 
-        ClickioConsentSDK.getInstance().initialize(act, config)
+        val clickioConsentSdk = ClickioConsentSDK.getInstance()
+
+        clickioConsentSdk.initialize(act, config)
+
+        clickioConsentSdk.onReady {
+            channel.invokeMethod("onReady", null)
+        }
+
+        clickioConsentSdk.onConsentUpdated {
+            channel.invokeMethod("onConsentUpdate", null)
+        }
     }
 
    private fun setLogsMode(call: MethodCall, result: Result) {

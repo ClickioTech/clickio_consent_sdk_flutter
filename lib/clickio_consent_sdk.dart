@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import './clickio_consent_sdk_platform_interface.dart';
 import './config/config.dart';
 import './enums/enums.dart';
@@ -8,6 +10,23 @@ export './enums/enums.dart';
 /// A SDK class that provides methods for handling user consent and related functionalities.
 /// This includes initialization, consent updates, dialog presentation, and retrieving consent information.
 class ClickioConsentSdk {
+  static final _onReadyController = StreamController<void>.broadcast();
+  static final _onConsentUpdateController = StreamController<void>.broadcast();
+
+  static Stream<void> get onReady => _onReadyController.stream;
+  static Stream<void> get onConsentUpdate => _onConsentUpdateController.stream;
+
+  static void handleMethodCall(String method) {
+    switch (method) {
+      case 'onReady':
+        _onReadyController.add(null);
+        break;
+      case 'onConsentUpdate':
+        _onConsentUpdateController.add(null);
+        break;
+    }
+  }
+
   /// Initializes the SDK with a provided [Config] object.
   ///
   /// This method should be called at the beginning of the app to set up the SDK.

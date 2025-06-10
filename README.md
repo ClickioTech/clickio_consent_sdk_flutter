@@ -9,7 +9,9 @@ A Flutter plugin that wraps the native Clickio Consent SDK for Android and iOS, 
 5. [Methods](#methods)
 6. [Integration with Third-Party Libraries for Google Consent Mode](#integration-with-third-party-libraries-for-google-consent-mode)
 7. [Integration with Third-Party Libraries When Google Consent Mode Is Disabled](#integration-with-third-party-libraries-when-google-consent-mode-is-disabled)
-8. [Delaying Ad Display until ATT and User Consent](#delaying-ad-display-until-att-and-user-consent)
+8. [Delaying Google Mobile Ads display until ATT and User Consent](#delaying-google-mobile-ads-display-until-att-and-user-consent)
+9. [Running the Plugin Example App](#running-the-plugin-example-app)
+
 
 ## Requirements
 
@@ -79,7 +81,7 @@ Here’s the minimal implementation to get started with the `clickio_consent_sdk
 import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 ```
 
-### Initialize the SDK and Open Consent Window:
+### Initialize the SDK and open Consent Window:
 
 Replace `your_clickio_site_id` with your actual [**Site ID**](https://docs.clickio.com/books/clickio-consent-cmp/page/google-consent-mode-v2-implementation#bkmrk-access-the-template%3A).
 
@@ -103,7 +105,7 @@ await clickioConsentSdk.openDialog(
 );
 ```
 
-✅ In this code, after successful initialization, the SDK will open the Consent Window, a transparent screen with a WebView containing the consent form.
+✅ After successful initialization, the SDK will open the consent dialog if it is required for the current user.
 
 ---
 
@@ -173,13 +175,43 @@ await clickioConsentSdk.openDialog(
 );
 ```
 
-### Parameters:
+#### Parameters:
 - `mode` - defines when the dialog should be shown. Possible values::
   - `DialogMode.defaultMode` –  Opens the dialog if GDPR applies and user hasn't given consent.
   - `DialogMode.resurface` – Always forces dialog to open, regardless of the user’s jurisdiction, allowing users to modify settings for GDPR compliance or to opt out under US regulations.
 - `attNeeded`: Determines if ATT is required.
 
 > 💡 If your app has it's own ATT Permission manager you just pass `false` in `attNeeded` parameter and call your own ATT method. Keep in mind that in this case consent screen will be shown regardless given ATT Permission.
+
+---
+
+### Handling `singleTask` Launch Mode and Consent Dialog
+
+When your app's Android MainActivity is configured with `launchMode="singleTask"` (set in `AndroidManifest.xml`), returning to the app (e.g., via the launcher icon) can cause the Consent Dialog to close unexpectedly.
+
+To ensure the Consent Dialog is displayed correctly when the launch mode set to `"singleTask"`, handle opening consent dialog in Flutter’s didChangeAppLifecycleState callback.
+
+#### Example:
+
+```dart
+@override
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  if (state == AppLifecycleState.resumed) {
+    _reopenConsentDialog();
+  }
+}
+
+Future<void> _reopenConsentDialog() async {
+  final consentState = await ClickioConsentSdk.checkConsentState();
+
+  if (consentState == ConsentState.gdprNoDecision) {
+    // Only show if user hasn't made a decision yet
+    await ClickioConsentSdk.openDialog(attNeeded: true);
+  } else {
+    debugPrint('Consent already decided, not reopening dialog.');
+  }
+}
+```
 
 ---
 
@@ -467,69 +499,103 @@ await FirebaseAnalytics.instance.setConsent(
 
 ---
 
-## Delaying Ad Display until ATT and User Consent
+## Delaying Google Mobile Ads display until ATT and User Consent
 
 Sometimes you need to ensure that both Apple's App Tracking Transparency prompt and user consent decision have been recorded before initializing and loading Google Mobile Ads. To implement this flow:
 
-1. Wait for ATT authorization and CMP readiness
-	- First present the ATT prompt.
-	- Then open Clickio SDK's consent dialog via `ClickioConsentSDK.openDialog()`.
-2. Initialize and load ads only after consent
-	- Eensure that `checkConsentState() != gdprNoDecision` has been confirmed.
-	- Then call `MobileAds.shared.start(...)` and load your banner.
-This ensures that Google Mobile Ads is only started—and the banner only fetched—once you've obtained both ATT permission and explicit user decision from the CMP.
+1. **Wait for ATT authorization and CMP readiness**
+  - First present the ATT prompt.
+  - Then open Clickio SDK's consent dialog via `ClickioConsentSDK.openDialog()`.
+2. **Use Clickio SDK's callbacks**
+  - In the `onReady` callback, you know that SDK is ready & the CMP dialog can be shown.
+  - In the `onConsentUpdated` callback, you know the user's consent decision has been recorded.
+3. **Initialize and load ads only after consent**
+  - Ensure that `checkConsentState() != gdprNoDecision` has been confirmed.
+  - Then call `MobileAds.instance.initialize(...)` and load your banner.
+This ensures that Google Mobile Ads is only started - and the banner only fetched — once you've obtained both ATT permission and explicit user decision from the CMP.
 
-### Code example:
+#### Note: Avoid double-starting
+
+– E.g. if ads already started on initial accept, don’t restart after a later “resurface” consent change.
+
+#### Code example:
 
 ```dart
-void initializeConsentAndAds() async {
-    // Check previous user decision before showing Google Ads
-    final consentState = await ClickioConsentSDK.checkConsentState();
-    
-    if (consentState != ConsentState.gdprNoDecision) {
-      // Load your ad here
-      await MobileAds.instance.initialize().then((_) {
-        print("Google Ads initialized and ready");
+// Keep track of whether Google Mobile Ads has already been started
+bool _adsStarted = false;
 
-        BannerAd(
-          adUnitId: 'your-ad-unit-id',
-          size: AdSize.banner,
-          request: AdRequest(),
-          listener: BannerAdListener(
-            onAdLoaded: (_) => print('Banner loaded'),
-            onAdFailedToLoad: (ad, error) {
-              print('Ad load failed: $error');
-              ad.dispose();
-            },
-          ),
-        ).load();
-      });
-    }
+void setupConsentAndAds() {
+  // 1) Listen for SDK readiness (CMP can show)
+  ClickioConsentSdk.onReady.listen((_) {
+    // 2) Show CMP dialog
+    ClickioConsentSDK.openDialog(
+      mode: DialogMode.defaultMode,
+      attNeeded: true,
+    );
 
-    // Open CMP Dialog
-    await ClickioConsentSDK.openDialog(mode: 'resurface', attNeeded: true);
+    // 3) Immediately check prior consent
+    _tryStartAdsIfAllowed();
+  });
 
-    // Check user decision after updated consent
-    final consentState = await ClickioConsentSDK.checkConsentState();
-
-    if (consentState != ConsentState.gdprNoDecision) {
-      // Load your ad here
-      await MobileAds.instance.initialize().then((_) {
-        print("Google Ads initialized and ready (onConsentUpdated)");
-
-        BannerAd(
-          adUnitId: 'your-ad-unit-id',
-          size: AdSize.banner,
-          request: AdRequest(),
-          listener: BannerAdListener(
-            onAdLoaded: (_) => print('Banner loaded'),
-            onAdFailedToLoad: (ad, error) {
-              print('Ad load failed: $error');
-              ad.dispose();
-            },
-          ),
-        ).load();
-      });
-    }
+  // 4) When consent changes, check again
+  ClickioConsentSdk.onConsentUpdate.listen((_) {
+    _tryStartAdsIfAllowed();
+  });
 }
+
+Future<void> _tryStartAdsIfAllowed() async {
+  final consentState = await ClickioConsentSDK.checkConsentState();
+  
+  if (consentState == ConsentState.gdprNoDecision) return;
+
+  if (_adsStarted) {
+    debugPrint('Ads already started');
+
+    return;
+  }
+
+  debugPrint('Consent allows ads – starting Google Mobile Ads');
+
+  await MobileAds.instance.initialize();
+
+  _adsStarted = true;
+
+  _loadBannerAd(); // Optional: Load your ad here
+}
+
+void _loadBannerAd() {
+  // Load a simple banner ad
+  BannerAd(
+    adUnitId: '<YOUR_AD_UNIT_ID>',
+    size: AdSize.banner,
+    request: AdRequest(),
+    listener: BannerAdListener(),
+  ).load();
+}
+```
+
+---
+
+## Running the Plugin Example App
+
+To get started with the plugin example application, follow the simple steps below. This will help you set up and run the app on your local machine.
+
+1. **Clone the repository:**
+
+```bash
+  git clone <repository-url>
+  cd <repository-folder>/example
+```
+
+2. **Get dependencies:**
+
+```bash
+  flutter pub get
+```
+
+3. **Run the example app:**
+
+
+```bash
+  flutter run
 ```

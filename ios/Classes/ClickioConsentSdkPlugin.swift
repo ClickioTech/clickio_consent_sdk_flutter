@@ -2,13 +2,24 @@ import ClickioConsentSDKManager
 import Flutter
 import UIKit
 
-
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
+  private var channel: FlutterMethodChannel?
+
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(
-      name: "clickio_consent_sdk", binaryMessenger: registrar.messenger())
+    let methodChannel = FlutterMethodChannel(
+      name: "clickio_consent_sdk",
+      binaryMessenger: registrar.messenger()
+    )
     let instance = ClickioConsentSdkPlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
+    registrar.addMethodCallDelegate(instance, channel: methodChannel)
+
+    ClickioConsentSDK.shared.onReady {
+      methodChannel.invokeMethod("onReady", arguments: nil)
+    }
+
+    ClickioConsentSDK.shared.onConsentUpdated {
+      methodChannel.invokeMethod("onConsentUpdate", arguments: nil)
+    }
   }
 
   @MainActor
@@ -147,7 +158,7 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
       }
     }
   }
-    
+
   @MainActor
   private func getConsentScope(result: FlutterResult) {
     result(ClickioConsentSDK.shared.checkConsentScope())

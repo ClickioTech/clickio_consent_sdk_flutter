@@ -4,16 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import './clickio_consent_sdk_platform_interface.dart';
-import './enums/enums.dart';
-import './config/config.dart';
+import './clickio_consent_sdk.dart';
 
 /// An implementation of [ClickioConsentSdkPlatform] that uses method channels.
 class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
   static const _methodChannel = MethodChannel('clickio_consent_sdk');
 
+  Future<void> _handleMethodCall(MethodCall call) async {
+    ClickioConsentSdk.handleMethodCall(call.method);
+  }
+
   @override
   Future<String?> initialize({required Config config}) async {
     try {
+      _methodChannel.setMethodCallHandler(_handleMethodCall);
+
       final result = await _methodChannel.invokeMethod<String>('initialize', {
         'siteId': config.siteId,
         'language': config.language,

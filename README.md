@@ -10,6 +10,8 @@ A Flutter plugin that wraps the native Clickio Consent SDK for Android and iOS, 
 6. [Integration with Third-Party Libraries for Google Consent Mode](#integration-with-third-party-libraries-for-google-consent-mode)
 7. [Integration with Third-Party Libraries When Google Consent Mode Is Disabled](#integration-with-third-party-libraries-when-google-consent-mode-is-disabled)
 8. [Delaying Google Mobile Ads display until ATT and User Consent](#delaying-google-mobile-ads-display-until-att-and-user-consent)
+9. [Running the Plugin Example App](#running-the-plugin-example-app)
+
 
 ## Requirements
 
@@ -571,6 +573,8 @@ void _loadBannerAd() {
   ).load();
 }
 ```
+
+---
 
 ## Running the Plugin Example App
 

@@ -76,10 +76,9 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         val act = binding.activity
+        
         if (act is FragmentActivity) {
             fragmentActivity = act
-
-            // Register the PlatformViewFactory now that we have the FragmentActivity
             pluginBinding?.platformViewRegistry?.registerViewFactory(
                 "clickio_webview",
                 ClickioWebViewFactory(act)

@@ -61,6 +61,33 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  // @override
+  // Future<String?> webViewLoadUrl({
+  //   required String url,
+  //   required WebViewConfig webViewConfig,
+  // }) async {
+  //   try {
+  //     final args = {
+  //       'url': url,
+  //       'backgroundColor': webViewConfig.backgroundColor,
+  //       'height': webViewConfig.height,
+  //       'width': webViewConfig.width,
+  //       'gravity': webViewConfig.gravity?.name,
+  //     };
+
+  //     final result = await _methodChannel.invokeMethod<String>(
+  //       'webViewLoadUrl',
+  //       args,
+  //     );
+
+  //     return result;
+  //   } catch (e) {
+  //     debugPrint('Error loading web view url - $e');
+
+  //     return null;
+  //   }
+  // }
+
   Future<String?> getConsentScope() async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentScope');

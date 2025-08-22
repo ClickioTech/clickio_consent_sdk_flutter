@@ -1,6 +1,6 @@
 name: clickio_consent_sdk
 description: "A Flutter plugin for Clickio Consent SDK. Supports iOS and Android."
-version: 1.0.0
+version: 1.0.1
 publisher: clickio.com
 homepage: https://clickio.com/
 repository: https://github.com/ClickioTech/clickio_consent_sdk_flutter

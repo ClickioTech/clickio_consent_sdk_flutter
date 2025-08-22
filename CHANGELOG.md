@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1
+<!-- List the changes -->
+
 ## 1.0.0
 
 ### Added

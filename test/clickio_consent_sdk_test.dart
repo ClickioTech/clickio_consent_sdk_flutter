@@ -104,6 +104,15 @@ class MockClickioConsentSdkPlatform
   Future<String?> getTCString() {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> webViewLoadUrl({
+    required String url,
+    required WebViewConfig webViewConfig,
+  }) {
+    // TODO: implement webViewLoadUrl
+    throw UnimplementedError();
+  }
 }
 
 void main() {

@@ -1,8 +1,12 @@
 package com.clickio.clickio_consent_sdk
 
-import android.app.Activity
+import android.content.Context
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.FragmentActivity
 import com.clickio.clickioconsentsdk.ClickioConsentSDK
 import com.clickio.clickioconsentsdk.ClickioConsentSDK.Config
+import com.clickio.clickioconsentsdk.WebViewConfig
 import com.clickio.clickioconsentsdk.LogsMode
 import com.clickio.clickioconsentsdk.ExportData
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -10,16 +14,79 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.platform.PlatformView
+import io.flutter.plugin.platform.PlatformViewFactory
+import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import android.util.Log
+
+class ClickioWebViewFactory(
+    private val fragmentActivity: FragmentActivity
+) : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
+
+    override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
+        val params = args as? Map<String, Any?> ?: emptyMap()
+
+        val url = params["url"] as? String ?: ""
+        val backgroundColor = (params["backgroundColor"] as Long).toInt()
+        val height = params["height"] as Int 
+        val width = params["width"] as Int 
+        
+        val webViewConfig = WebViewConfig(backgroundColor, height, width)
+
+        val webView = ClickioConsentSDK
+            .getInstance()
+            .webViewLoadUrl(fragmentActivity, url, webViewConfig)
+
+        return object : PlatformView {
+            override fun getView(): View = webView
+            override fun dispose() {}
+        }
+    }
+}
 
 class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
-    private var activity: Activity? = null
+    private var fragmentActivity: FragmentActivity? = null
+    private var pluginBinding: FlutterPlugin.FlutterPluginBinding? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        pluginBinding = binding
         channel = MethodChannel(binding.binaryMessenger, "clickio_consent_sdk")
         channel.setMethodCallHandler(this)
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
+        pluginBinding = null
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        val act = binding.activity
+        if (act is FragmentActivity) {
+            fragmentActivity = act
+
+            // Register the PlatformViewFactory now that we have the FragmentActivity
+            pluginBinding?.platformViewRegistry?.registerViewFactory(
+                "clickio_webview",
+                ClickioWebViewFactory(act)
+            )
+        } else {
+            throw IllegalStateException("Activity must be a FragmentActivity")
+        }
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        fragmentActivity = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        onAttachedToActivity(binding)
+    }
+
+    override fun onDetachedFromActivity() {
+        fragmentActivity = null
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -48,13 +115,13 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
     }
 
     private fun initialize(call: MethodCall, result: Result) {
-        val act = activity ?: return result.error("NO_ACTIVITY", "Activity is null", null)
-        val siteId: String = call.argument<String>("siteId") ?: return result.error("INVALID_ARGUMENT", "siteId is required", null)
+        val act = fragmentActivity ?: return result.error("NO_ACTIVITY", "FragmentActivity is null", null)
+        val siteId: String = call.argument<String>("siteId")
+            ?: return result.error("INVALID_ARGUMENT", "siteId is required", null)
         val language = call.argument<String>("language") ?: "en"
         val config = Config(siteId, language)
 
         val clickioConsentSdk = ClickioConsentSDK.getInstance()
-
         clickioConsentSdk.initialize(act, config)
 
         clickioConsentSdk.onReady {
@@ -64,114 +131,64 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
         clickioConsentSdk.onConsentUpdated {
             channel.invokeMethod("onConsentUpdate", null)
         }
+
+        result.success(null)
     }
 
-   private fun setLogsMode(call: MethodCall, result: Result) {
-    val mode = when (call.argument<String>("mode")) {
-        "verbose" -> LogsMode.VERBOSE
-        else -> LogsMode.DISABLED
+    private fun setLogsMode(call: MethodCall, result: Result) {
+        val mode = when (call.argument<String>("mode")) {
+            "verbose" -> LogsMode.VERBOSE
+            else -> LogsMode.DISABLED
+        }
+        ClickioConsentSDK.getInstance().setLogsMode(mode)
+        result.success(null)
     }
-
-    ClickioConsentSDK.getInstance().setLogsMode(mode)
-    
-    result.success(null) 
-}
 
     private fun openDialog(call: MethodCall, result: Result) {
-        val act = activity ?: return result.error("NO_ACTIVITY", "Activity is null", null)
+        val act = fragmentActivity ?: return result.error("NO_ACTIVITY", "FragmentActivity is null", null)
         val mode = when (call.argument<String>("mode")) {
             "resurface" -> ClickioConsentSDK.DialogMode.RESURFACE
             else -> ClickioConsentSDK.DialogMode.DEFAULT
         }
-
         ClickioConsentSDK.getInstance().openDialog(act, mode)
+        result.success(null)
     }
 
-    private fun getConsentScope(result: Result) {
-        result.success(ClickioConsentSDK.getInstance().checkConsentScope().toString())
-    }
-
-    private fun getConsentState(result: Result) {
-        result.success(ClickioConsentSDK.getInstance().checkConsentState().toString())
-    }
-
+    private fun getConsentScope(result: Result) = result.success(ClickioConsentSDK.getInstance().checkConsentScope().toString())
+   
+    private fun getConsentState(result: Result) = result.success(ClickioConsentSDK.getInstance().checkConsentState().toString())
+   
     private fun getConsentForPurpose(call: MethodCall, result: Result) {
         val id = call.argument<Int>("id") ?: 1
         result.success(ClickioConsentSDK.getInstance().checkConsentForPurpose(id).toString())
     }
-
+   
     private fun getConsentForVendor(call: MethodCall, result: Result) {
         val id = call.argument<Int>("id") ?: 9
         result.success(ClickioConsentSDK.getInstance().checkConsentForVendor(id).toString())
     }
-
-    private fun getTCString(result: Result) {
-        result.success(ExportData(activity!!).getTCString())
-    }
-
-    private fun getACString(result: Result) {
-        result.success(ExportData(activity!!).getACString())
-    }
-
-    private fun getGPPString(result: Result) {
-        result.success(ExportData(activity!!).getGPPString().toString())
-    }
-
-    private fun getGoogleConsentMode(result: Result) {
-        result.success(ExportData(activity!!).getGoogleConsentMode().toString())
-    }
-
-    private fun getConsentedTCFVendors(result: Result) {
-        result.success(ExportData(activity!!).getConsentedTCFVendors().toString())
-    }
-
-    private fun getConsentedTCFLiVendors(result: Result) {
-        result.success(ExportData(activity!!).getConsentedTCFLiVendors().toString())
-    }
-
-    private fun getConsentedTCFPurposes(result: Result) {
-        result.success(ExportData(activity!!).getConsentedTCFPurposes().toString())
-    }
-
-    private fun getConsentedTCFLiPurposes(result: Result) {
-        result.success(ExportData(activity!!).getConsentedTCFLiPurposes().toString())
-    }
-
-    private fun getConsentedGoogleVendors(result: Result) {
-        result.success(ExportData(activity!!).getConsentedGoogleVendors().toString())
-    }
-
-    private fun getConsentedOtherVendors(result: Result) {
-        result.success(ExportData(activity!!).getConsentedOtherVendors().toString())
-    }
-
-    private fun getConsentedOtherLiVendors(result: Result) {
-        result.success(ExportData(activity!!).getConsentedOtherLiVendors().toString())
-    }
-
-    private fun getConsentedNonTcfPurposes(result: Result) {
-        result.success(ExportData(activity!!).getConsentedNonTcfPurposes().toString())
-    }
-
-    // --- Activity Lifecycle Hooks ---
-
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activity = binding.activity
-    }
-
-    override fun onDetachedFromActivityForConfigChanges() {
-        activity = null
-    }
-
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activity = binding.activity
-    }
-
-    override fun onDetachedFromActivity() {
-        activity = null
-    }
-
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
-    }
+   
+    private fun getTCString(result: Result) { result.success(ExportData(fragmentActivity!!).getTCString()) }
+   
+    private fun getACString(result: Result) { result.success(ExportData(fragmentActivity!!).getACString()) }
+   
+    private fun getGPPString(result: Result) { result.success(ExportData(fragmentActivity!!).getGPPString().toString()) }
+   
+    private fun getGoogleConsentMode(result: Result) { result.success(ExportData(fragmentActivity!!).getGoogleConsentMode().toString()) }
+   
+    private fun getConsentedTCFVendors(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedTCFVendors().toString()) }
+   
+    private fun getConsentedTCFLiVendors(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedTCFLiVendors().toString()) }
+   
+    private fun getConsentedTCFPurposes(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedTCFPurposes().toString()) }
+   
+    private fun getConsentedTCFLiPurposes(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedTCFLiPurposes().toString()) }
+   
+    private fun getConsentedGoogleVendors(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedGoogleVendors().toString()) }
+   
+    private fun getConsentedOtherVendors(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedOtherVendors().toString()) }
+   
+    private fun getConsentedOtherLiVendors(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedOtherLiVendors().toString()) }
+   
+    private fun getConsentedNonTcfPurposes(result: Result) { result.success(ExportData(fragmentActivity!!).getConsentedNonTcfPurposes().toString()) }
 }

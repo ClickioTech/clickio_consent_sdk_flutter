@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import './clickio_consent_sdk_method_channel.dart';
-import './config/config.dart';
 import './enums/enums.dart';
+import './configs/configs.dart';
 
 abstract class ClickioConsentSdkPlatform extends PlatformInterface {
   ClickioConsentSdkPlatform() : super(token: _token);
@@ -37,6 +40,40 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     required bool attNeeded,
   }) async {
     return _instance.openDialog(mode: mode, attNeeded: attNeeded);
+  }
+
+  Widget webViewLoadUrl({
+    required String url,
+    required WebViewConfig webViewConfig,
+  }) {
+    final viewType = 'clickio_webview';
+    final backgroundColor = webViewConfig.backgroundColor?.toARGB32();
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidView(
+        viewType: viewType,
+        creationParams: {
+          'url': url,
+          'backgroundColor': backgroundColor,
+          'height': webViewConfig.height,
+          'width': webViewConfig.width,
+        },
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return UiKitView(
+        viewType: viewType,
+        creationParams: {
+          'url': url,
+          'backgroundColor': backgroundColor,
+          'height': webViewConfig.height,
+          'width': webViewConfig.width,
+        },
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   Future<String?> getConsentScope() async {

@@ -1,11 +1,13 @@
 import 'dart:async';
 
-import './clickio_consent_sdk_platform_interface.dart';
-import './config/config.dart';
-import './enums/enums.dart';
+import 'package:clickio_consent_sdk/configs/configs.dart';
+import 'package:flutter/material.dart';
 
-export './config/config.dart';
-export './enums/enums.dart';
+import './clickio_consent_sdk_platform_interface.dart';
+import 'enums/enums.dart';
+
+export 'configs/configs.dart';
+export 'enums/enums.dart';
 
 /// A SDK class that provides methods for handling user consent and related functionalities.
 /// This includes initialization, consent updates, dialog presentation, and retrieving consent information.
@@ -60,6 +62,15 @@ class ClickioConsentSdk {
     return ClickioConsentSdkPlatform.instance.openDialog(
       mode: mode,
       attNeeded: attNeeded,
+    );
+  }
+
+  Widget webViewLoadUrl({required String url, WebViewConfig? webViewConfig}) {
+    final config = webViewConfig ?? WebViewConfig();
+
+    return ClickioConsentSdkPlatform.instance.webViewLoadUrl(
+      url: url,
+      webViewConfig: config,
     );
   }
 

@@ -2,6 +2,94 @@ import ClickioConsentSDKManager
 import Flutter
 import UIKit
 
+class ClickioWebViewFactory: NSObject, FlutterPlatformViewFactory {
+  func create(
+    withFrame frame: CGRect,
+    viewIdentifier viewId: Int64,
+    arguments args: Any?
+  ) -> FlutterPlatformView {
+    let params = args as? [String: Any] ?? [:]
+      
+    guard let urlString = params["url"] as? String, URL(string: urlString) != nil,
+      !urlString.isEmpty
+    else {
+      print("ClickioWebViewFactory: invalid URL, returning empty view")
+
+      return ClickioWebViewWrapper(webView: UIView())  
+    }
+
+    let backgroundColorValue = params["backgroundColor"] as? NSNumber ?? 0xFFFF_FFFF
+    let backgroundColor = UIColor(
+      red: CGFloat((backgroundColorValue.intValue >> 16) & 0xFF) / 255.0,
+      green: CGFloat((backgroundColorValue.intValue >> 8) & 0xFF) / 255.0,
+      blue: CGFloat(backgroundColorValue.intValue & 0xFF) / 255.0,
+      alpha: CGFloat((backgroundColorValue.intValue >> 24) & 0xFF) / 255.0
+    )
+
+    let height: CGFloat? = {
+        if let heightValue = params["height"] as? Int {
+            return CGFloat(heightValue)
+        }
+
+        return nil
+    }()
+
+    let width: CGFloat? = {
+        if let widthValue = params["width"] as? Int {
+            return CGFloat(widthValue)
+        }
+        
+        return nil
+    }()
+
+    let gravity: WebViewGravity = {
+    if let gravityString = params["gravity"] as? String {
+        switch gravityString.lowercased() {
+        case "top":
+            return .top
+        case "center":
+            return .center
+        case "bottom":
+            return .bottom
+        default:
+            return .center
+        }
+    }
+    return .center
+    }()
+
+    let webViewConfig = WebViewConfig(
+      backgroundColor: backgroundColor,
+      width: width,
+      height: height,
+      gravity: gravity
+    )
+
+    let webViewController = ClickioConsentSDK.shared.webViewLoadUrl(
+      urlString: urlString,
+      config: webViewConfig
+    )
+
+    return ClickioWebViewWrapper(webView: webViewController.view)
+  }
+    
+    func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
+        return FlutterStandardMessageCodec.sharedInstance()
+    }
+}
+
+class ClickioWebViewWrapper: NSObject, FlutterPlatformView {
+  private let webView: UIView
+
+  init(webView: UIView) {
+    self.webView = webView
+  }
+
+  func view() -> UIView {
+    return webView
+  }
+}
+
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
   private var channel: FlutterMethodChannel?
 
@@ -10,6 +98,10 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
       name: "clickio_consent_sdk",
       binaryMessenger: registrar.messenger()
     )
+
+    let factory = ClickioWebViewFactory()
+    registrar.register(factory, withId: "clickio_webview")
+
     let instance = ClickioConsentSdkPlugin()
     registrar.addMethodCallDelegate(instance, channel: methodChannel)
 

@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import './clickio_consent_sdk_method_channel.dart';
-import './config/config.dart';
 import './enums/enums.dart';
+import './configs/configs.dart';
 
 abstract class ClickioConsentSdkPlatform extends PlatformInterface {
   ClickioConsentSdkPlatform() : super(token: _token);
@@ -37,6 +40,65 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     required bool attNeeded,
   }) async {
     return _instance.openDialog(mode: mode, attNeeded: attNeeded);
+  }
+
+  Widget webViewLoadUrl({
+    required String url,
+    required WebViewConfig webViewConfig,
+  }) {
+    final viewType = 'clickio_webview';
+    final backgroundColor = webViewConfig.backgroundColor?.toARGB32();
+
+    Widget webView =
+        defaultTargetPlatform == TargetPlatform.android
+            ? SizedBox(
+              height: webViewConfig.height?.toDouble(),
+              width: webViewConfig.width?.toDouble(),
+              child: AndroidView(
+                viewType: viewType,
+                creationParams: {
+                  'url': url,
+                  'backgroundColor': backgroundColor,
+                  'height': webViewConfig.height,
+                  'width': webViewConfig.width,
+                  'gravity': webViewConfig.gravity?.name,
+                },
+                creationParamsCodec: const StandardMessageCodec(),
+              ),
+            )
+            : defaultTargetPlatform == TargetPlatform.iOS
+            ? UiKitView(
+              viewType: viewType,
+              creationParams: {
+                'url': url,
+                'backgroundColor': backgroundColor,
+                'height': webViewConfig.height,
+                'width': webViewConfig.width,
+                'gravity': webViewConfig.gravity?.name,
+              },
+              creationParamsCodec: const StandardMessageCodec(),
+            )
+            : const SizedBox.shrink();
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      Alignment alignment;
+
+      switch (webViewConfig.gravity) {
+        case WebViewGravity.top:
+          alignment = Alignment.topCenter;
+          break;
+        case WebViewGravity.bottom:
+          alignment = Alignment.bottomCenter;
+          break;
+        case WebViewGravity.center:
+        default:
+          alignment = Alignment.center;
+      }
+
+      webView = Align(alignment: alignment, child: webView);
+    }
+
+    return webView;
   }
 
   Future<String?> getConsentScope() async {

@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentActivity
 import com.clickio.clickioconsentsdk.ClickioConsentSDK
 import com.clickio.clickioconsentsdk.ClickioConsentSDK.Config
 import com.clickio.clickioconsentsdk.WebViewConfig
+import com.clickio.clickioconsentsdk.WebViewGravity
 import com.clickio.clickioconsentsdk.LogsMode
 import com.clickio.clickioconsentsdk.ExportData
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -20,6 +21,7 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import android.util.Log
+import java.util.Locale
 
 class ClickioWebViewFactory(
     private val fragmentActivity: FragmentActivity
@@ -29,15 +31,25 @@ class ClickioWebViewFactory(
         val params = args as? Map<String, Any?> ?: emptyMap()
 
         val url = params["url"] as? String ?: ""
-        val backgroundColor = (params["backgroundColor"] as Long).toInt()
-        val height = params["height"] as Int 
-        val width = params["width"] as Int 
-        
-        val webViewConfig = WebViewConfig(backgroundColor, height, width)
+        val backgroundColor = (params["backgroundColor"] as? Number)?.toInt() ?: 0
+        val height = params["height"] as? Int ?: -1
+        val width = params["width"] as? Int ?: -1        
+        val gravity: WebViewGravity = (params["gravity"] as? String)?.let {
+            runCatching { WebViewGravity.valueOf(it.uppercase(Locale.ROOT)) }.getOrNull()
+        } ?: WebViewGravity.CENTER
 
-        val webView = ClickioConsentSDK
-            .getInstance()
-            .webViewLoadUrl(fragmentActivity, url, webViewConfig)
+        val webViewConfig = WebViewConfig(
+            backgroundColor = backgroundColor,
+            height = height,
+            width = width,
+            gravity = gravity
+        )
+
+        val webView = ClickioConsentSDK.getInstance().webViewLoadUrl(
+            fragmentActivity,
+            url,
+            webViewConfig
+        )
 
         return object : PlatformView {
             override fun getView(): View = webView

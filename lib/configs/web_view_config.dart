@@ -3,15 +3,20 @@ import 'package:flutter/material.dart';
 import '../enums/enums.dart';
 
 class WebViewConfig {
-  // Default value - transparent, example of value: 0xFFFF0000 or Colors.white
+  /// Background color of the WebView.
+  /// Default: Colors.transparent. Example: 0xFFFFFFFF or Colors.white
   final Color? backgroundColor;
 
-  // Value in px, default value (-1) = match parent (max size)
+  /// Height of the WebView in pixels.
+  /// Default: null - widget will expand to fill available space (match parent behavior)
   final int? height;
 
-  // Value in px, default value (-1) = match parent (max size)
+  /// Width of the WebView in pixels.
+  /// Default: null - widget will expand to fill available space (match parent behavior)
   final int? width;
 
+  /// Alignment of the WebView content inside its container.
+  /// Default: WebViewGravity.center
   final WebViewGravity? gravity;
 
   const WebViewConfig({

@@ -1,4 +1,5 @@
 import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clickio_consent_sdk/clickio_consent_sdk_platform_interface.dart';
 import 'package:clickio_consent_sdk/clickio_consent_sdk_method_channel.dart';
@@ -106,11 +107,10 @@ class MockClickioConsentSdkPlatform
   }
 
   @override
-  Future<void> webViewLoadUrl({
+  Widget webViewLoadUrl({
     required String url,
     required WebViewConfig webViewConfig,
   }) {
-    // TODO: implement webViewLoadUrl
     throw UnimplementedError();
   }
 }

@@ -49,31 +49,56 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     final viewType = 'clickio_webview';
     final backgroundColor = webViewConfig.backgroundColor?.toARGB32();
 
+    Widget webView =
+        defaultTargetPlatform == TargetPlatform.android
+            ? SizedBox(
+              height: webViewConfig.height?.toDouble(),
+              width: webViewConfig.width?.toDouble(),
+              child: AndroidView(
+                viewType: viewType,
+                creationParams: {
+                  'url': url,
+                  'backgroundColor': backgroundColor,
+                  'height': webViewConfig.height,
+                  'width': webViewConfig.width,
+                  'gravity': webViewConfig.gravity?.name,
+                },
+                creationParamsCodec: const StandardMessageCodec(),
+              ),
+            )
+            : defaultTargetPlatform == TargetPlatform.iOS
+            ? UiKitView(
+              viewType: viewType,
+              creationParams: {
+                'url': url,
+                'backgroundColor': backgroundColor,
+                'height': webViewConfig.height,
+                'width': webViewConfig.width,
+                'gravity': webViewConfig.gravity?.name,
+              },
+              creationParamsCodec: const StandardMessageCodec(),
+            )
+            : const SizedBox.shrink();
+
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return AndroidView(
-        viewType: viewType,
-        creationParams: {
-          'url': url,
-          'backgroundColor': backgroundColor,
-          'height': webViewConfig.height,
-          'width': webViewConfig.width,
-        },
-        creationParamsCodec: const StandardMessageCodec(),
-      );
-    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return UiKitView(
-        viewType: viewType,
-        creationParams: {
-          'url': url,
-          'backgroundColor': backgroundColor,
-          'height': webViewConfig.height,
-          'width': webViewConfig.width,
-        },
-        creationParamsCodec: const StandardMessageCodec(),
-      );
-    } else {
-      return const SizedBox.shrink();
+      Alignment alignment;
+
+      switch (webViewConfig.gravity) {
+        case WebViewGravity.top:
+          alignment = Alignment.topCenter;
+          break;
+        case WebViewGravity.bottom:
+          alignment = Alignment.bottomCenter;
+          break;
+        case WebViewGravity.center:
+        default:
+          alignment = Alignment.center;
+      }
+
+      webView = Align(alignment: alignment, child: webView);
     }
+
+    return webView;
   }
 
   Future<String?> getConsentScope() async {

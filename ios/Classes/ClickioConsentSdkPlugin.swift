@@ -18,22 +18,6 @@ class ClickioWebViewFactory: NSObject, FlutterPlatformViewFactory {
       return ClickioWebViewWrapper(webView: UIView())  
     }
 
-    let height: CGFloat? = {
-        if let h = params["height"] as? Int {
-            return CGFloat(h)
-        }
-
-        return nil
-    }()
-
-    let width: CGFloat? = {
-        if let w = params["width"] as? Int {
-            return CGFloat(w)
-        }
-        
-        return nil
-    }()
-
     let backgroundColorValue = params["backgroundColor"] as? NSNumber ?? 0xFFFF_FFFF
     let backgroundColor = UIColor(
       red: CGFloat((backgroundColorValue.intValue >> 16) & 0xFF) / 255.0,
@@ -42,14 +26,45 @@ class ClickioWebViewFactory: NSObject, FlutterPlatformViewFactory {
       alpha: CGFloat((backgroundColorValue.intValue >> 24) & 0xFF) / 255.0
     )
 
-    // Create config
+    let height: CGFloat? = {
+        if let heightValue = params["height"] as? Int {
+            return CGFloat(heightValue)
+        }
+
+        return nil
+    }()
+
+    let width: CGFloat? = {
+        if let widthValue = params["width"] as? Int {
+            return CGFloat(widthValue)
+        }
+        
+        return nil
+    }()
+
+    let gravity: WebViewGravity = {
+    if let gravityString = params["gravity"] as? String {
+        switch gravityString.lowercased() {
+        case "top":
+            return .top
+        case "center":
+            return .center
+        case "bottom":
+            return .bottom
+        default:
+            return .center
+        }
+    }
+    return .center
+    }()
+
     let webViewConfig = WebViewConfig(
       backgroundColor: backgroundColor,
       width: width,
-      height: height
+      height: height,
+      gravity: gravity
     )
 
-    // Load controller from SDK
     let webViewController = ClickioConsentSDK.shared.webViewLoadUrl(
       urlString: urlString,
       config: webViewConfig

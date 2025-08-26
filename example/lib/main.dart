@@ -123,17 +123,24 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> webViewLoadUrl() async {
     final webView = clickioConsentSdk.webViewLoadUrl(
-      url:
-          'https://account.clickio.com/public/test/solveit-demo/tcf-global.html',
+      url: 'https://example.com',
       webViewConfig: WebViewConfig(
         backgroundColor: Colors.lightBlueAccent,
-        height: 800,
-        width: 400,
+        height: 700,
+        width: 350,
         gravity: WebViewGravity.center,
       ),
     );
 
-    await showDialog(context: context, builder: (_) => Dialog(child: webView));
+    await showDialog(
+      context: context,
+      builder:
+          (_) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.zero,
+            child: webView,
+          ),
+    );
   }
 
   Future<void> getConsentData() async {

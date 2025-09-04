@@ -61,6 +61,10 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  Future<void> cleanup() async {
+    if (Platform.isIOS) await _methodChannel.invokeMapMethod('cleanup');
+  }
+
   Future<String?> getConsentScope() async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentScope');

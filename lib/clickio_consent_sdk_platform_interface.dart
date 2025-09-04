@@ -101,6 +101,10 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     return webView;
   }
 
+  Future<void> cleanup() async {
+    return _instance.cleanup();
+  }
+
   Future<String?> getConsentScope() async {
     return _instance.getConsentScope();
   }

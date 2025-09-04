@@ -113,6 +113,11 @@ class MockClickioConsentSdkPlatform
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> cleanup() {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

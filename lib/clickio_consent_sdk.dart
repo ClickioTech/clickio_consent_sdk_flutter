@@ -65,6 +65,10 @@ class ClickioConsentSdk {
     );
   }
 
+  /// Returns  a custom WebViewController with provided URL and layout config.
+  /// Parameter urlString: WebView URL.
+  /// Parameter config: config object that describes WebView parameters: backgroundColor,
+  /// width, height, gravity.
   Widget webViewLoadUrl({required String url, WebViewConfig? webViewConfig}) {
     final config = webViewConfig ?? WebViewConfig();
 
@@ -72,6 +76,11 @@ class ClickioConsentSdk {
       url: url,
       webViewConfig: config,
     );
+  }
+
+  /// [iOS] Safely release webview resources and detach handlers
+  Future<void> cleanup() {
+    return ClickioConsentSdkPlatform.instance.cleanup();
   }
 
   /// Retrieves the consent scope as a string.

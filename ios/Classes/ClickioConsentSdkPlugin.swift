@@ -2,96 +2,9 @@ import ClickioConsentSDKManager
 import Flutter
 import UIKit
 
-class ClickioWebViewFactory: NSObject, FlutterPlatformViewFactory {
-  func create(
-    withFrame frame: CGRect,
-    viewIdentifier viewId: Int64,
-    arguments args: Any?
-  ) -> FlutterPlatformView {
-    let params = args as? [String: Any] ?? [:]
-      
-    guard let urlString = params["url"] as? String, URL(string: urlString) != nil,
-      !urlString.isEmpty
-    else {
-      print("ClickioWebViewFactory: invalid URL, returning empty view")
-
-      return ClickioWebViewWrapper(webView: UIView())  
-    }
-
-    let backgroundColorValue = params["backgroundColor"] as? NSNumber ?? 0xFFFF_FFFF
-    let backgroundColor = UIColor(
-      red: CGFloat((backgroundColorValue.intValue >> 16) & 0xFF) / 255.0,
-      green: CGFloat((backgroundColorValue.intValue >> 8) & 0xFF) / 255.0,
-      blue: CGFloat(backgroundColorValue.intValue & 0xFF) / 255.0,
-      alpha: CGFloat((backgroundColorValue.intValue >> 24) & 0xFF) / 255.0
-    )
-
-    let height: CGFloat? = {
-        if let heightValue = params["height"] as? Int {
-            return CGFloat(heightValue)
-        }
-
-        return nil
-    }()
-
-    let width: CGFloat? = {
-        if let widthValue = params["width"] as? Int {
-            return CGFloat(widthValue)
-        }
-        
-        return nil
-    }()
-
-    let gravity: WebViewGravity = {
-    if let gravityString = params["gravity"] as? String {
-        switch gravityString.lowercased() {
-        case "top":
-            return .top
-        case "center":
-            return .center
-        case "bottom":
-            return .bottom
-        default:
-            return .center
-        }
-    }
-    return .center
-    }()
-
-    let webViewConfig = WebViewConfig(
-      backgroundColor: backgroundColor,
-      width: width,
-      height: height,
-      gravity: gravity
-    )
-
-    let webViewController = ClickioConsentSDK.shared.webViewLoadUrl(
-      urlString: urlString,
-      config: webViewConfig
-    )
-
-    return ClickioWebViewWrapper(webView: webViewController.view)
-  }
-    
-    func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
-        return FlutterStandardMessageCodec.sharedInstance()
-    }
-}
-
-class ClickioWebViewWrapper: NSObject, FlutterPlatformView {
-  private let webView: UIView
-
-  init(webView: UIView) {
-    self.webView = webView
-  }
-
-  func view() -> UIView {
-    return webView
-  }
-}
-
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
   private var channel: FlutterMethodChannel?
+  private var factory: ClickioWebViewFactory?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let methodChannel = FlutterMethodChannel(
@@ -103,6 +16,8 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
     registrar.register(factory, withId: "clickio_webview")
 
     let instance = ClickioConsentSdkPlugin()
+    instance.channel = methodChannel
+    instance.factory = factory
     registrar.addMethodCallDelegate(instance, channel: methodChannel)
 
     ClickioConsentSDK.shared.onReady {
@@ -134,6 +49,8 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
         return
       }
       self.openDialog(call: call, viewController: controller, result: result)
+    case "cleanup":
+      self.cleanup(result: result)
     case "getConsentScope":
       self.getConsentScope(result: result)
     case "getConsentState":
@@ -239,15 +156,22 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
     let mode: ClickioConsentSDK.DialogMode = dialogMode == "resurface" ? .resurface : .default
 
     DispatchQueue.main.async {
-      do {
-        ClickioConsentSDK.shared.openDialog(
-          mode: mode,
-          in: viewController,
-          attNeeded: attNeeded
-        )
+      ClickioConsentSDK.shared.openDialog(
+        mode: mode,
+        in: viewController,
+        attNeeded: attNeeded
+      )
+      result("Consent Dialog Opened")
+    }
+  }
 
-        result("Consent Dialog Opened")
-      }
+  @MainActor
+  private func cleanup(result: FlutterResult) {
+    if let controller = factory?.getLastController() {
+      controller.cleanup()
+      result(nil)
+    } else {
+      result(FlutterError(code: "NO_WEBVIEW", message: "No active webview to cleanup", details: nil))
     }
   }
 

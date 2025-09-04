@@ -141,6 +141,8 @@ class _MyAppState extends State<MyApp> {
             child: webView,
           ),
     );
+
+    await clickioConsentSdk.cleanup();
   }
 
   Future<void> getConsentData() async {
@@ -151,6 +153,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<Map<String, String?>> _getConsentData() async {
     final sdk = clickioConsentSdk;
+
     final futures = {
       'checkConsentScope': sdk.getConsentScope(),
       'checkConsentState': sdk.getConsentState(),
@@ -170,14 +173,13 @@ class _MyAppState extends State<MyApp> {
       'getConsentedNonTcfPurposes': sdk.getConsentedNonTcfPurposes(),
     };
 
-    final entries = await Future.wait(
+    final results = await Future.wait(
       futures.entries.map(
-        (entry) async =>
-            MapEntry(entry.key, await entry.value.then((_) => null)),
+        (entry) async => MapEntry(entry.key, await entry.value),
       ),
     );
 
-    return Map.fromEntries(entries);
+    return Map.fromEntries(results);
   }
 
   Map<String, String?> _sortConsentData(Map<String, String?> consentData) {

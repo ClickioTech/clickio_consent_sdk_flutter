@@ -657,12 +657,13 @@ The `webViewLoadUrl()` method helps **synchronize consent** between app and web 
  enum WebViewGravity { top, center, bottom }
 ```
 
-### Intregration example
+### Integration example
 
 In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` method. You can place it anywhere in a typical widget tree, such as inside a `Dialog`, `Column`, `Align`, `SizedBox`, etc.
 
 ```dart
- Future<void> webViewLoadUrl() async {
+ void webViewLoadUrl() async {
+    // Create the WebView widget
     final webView = clickioConsentSdk.webViewLoadUrl(
       url: 'https://example.com',
       webViewConfig: WebViewConfig(
@@ -673,6 +674,7 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
       ),
     );
 
+    // Display the WebView inside a Dialog
     await showDialog(
       context: context,
       builder:
@@ -683,8 +685,18 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
           ),
     );
   }
+
+  // Best practice: when removing the WebView, call cleanup() to release resources
+  await clickioConsentSdk.cleanup();
 ```
 
+#### Note: To close the overlay, either (a) add an on-screen close button that sets the flag to false, or (b) provide an SDK callback so the web content can request closing (recommended for web-driven close).
+
+#### When removing, don't forget to call the appropriate methods and clean up delegates/handlers through SDK's `cleanup()` method that safely releases webview resources and detach handlers:
+
+```dart
+await clickioConsentSdk.cleanup();
+```
 ---
 
 ## Running the Plugin Example App

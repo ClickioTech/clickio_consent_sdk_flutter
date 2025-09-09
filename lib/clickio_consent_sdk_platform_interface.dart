@@ -48,13 +48,26 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
   }) {
     final viewType = 'clickio_webview';
     final backgroundColor = webViewConfig.backgroundColor?.toARGB32();
+    final height = webViewConfig.height ?? double.infinity;
+    final width = webViewConfig.width ?? double.infinity;
 
-    Widget webView =
-        defaultTargetPlatform == TargetPlatform.android
-            ? SizedBox(
-              height: webViewConfig.height?.toDouble(),
-              width: webViewConfig.width?.toDouble(),
-              child: AndroidView(
+    Widget webView = SizedBox(
+      height: height.toDouble(),
+      width: width.toDouble(),
+      child:
+          defaultTargetPlatform == TargetPlatform.android
+              ? AndroidView(
+                viewType: viewType,
+                creationParams: {
+                  'url': url,
+                  'backgroundColor': backgroundColor,
+                  'height': webViewConfig.height,
+                  'width': webViewConfig.width,
+                  'gravity': webViewConfig.gravity?.name,
+                },
+                creationParamsCodec: const StandardMessageCodec(),
+              )
+              : UiKitView(
                 viewType: viewType,
                 creationParams: {
                   'url': url,
@@ -65,20 +78,7 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
                 },
                 creationParamsCodec: const StandardMessageCodec(),
               ),
-            )
-            : defaultTargetPlatform == TargetPlatform.iOS
-            ? UiKitView(
-              viewType: viewType,
-              creationParams: {
-                'url': url,
-                'backgroundColor': backgroundColor,
-                'height': webViewConfig.height,
-                'width': webViewConfig.width,
-                'gravity': webViewConfig.gravity?.name,
-              },
-              creationParamsCodec: const StandardMessageCodec(),
-            )
-            : const SizedBox.shrink();
+    );
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       Alignment alignment;

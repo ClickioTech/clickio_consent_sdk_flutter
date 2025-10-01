@@ -13,6 +13,7 @@ A Flutter plugin that wraps the native Clickio Consent SDK for Android and iOS, 
 9. [WebView Consent Synchronization](#webview-consent-synchronization)
 10. [Running the Plugin Example App](#running-the-plugin-example-app)
 
+
 ## Requirements
 
 Before integrating the ClickioConsentSdk (hereinafter reffered to as the Clickio SDK), ensure that your Flutter application meets the following requirements:
@@ -706,9 +707,6 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
           ),
     );
   }
-
-  // Best practice: when removing the WebView, call cleanup() to release resources
-  await clickioConsentSdk.cleanup();
 ```
 
 #### Note: To close the overlay, either (a) add an on-screen close button that sets the flag to false, or (b) provide an SDK callback so the web content can request closing (recommended for web-driven close).
@@ -718,6 +716,7 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
 ```dart
 await clickioConsentSdk.cleanup();
 ```
+
 ---
 
 ## Running the Plugin Example App

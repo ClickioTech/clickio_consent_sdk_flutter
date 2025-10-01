@@ -1,11 +1,13 @@
 import 'dart:async';
 
-import './clickio_consent_sdk_platform_interface.dart';
-import './config/config.dart';
-import './enums/enums.dart';
+import 'package:clickio_consent_sdk/configs/configs.dart';
+import 'package:flutter/material.dart';
 
-export './config/config.dart';
-export './enums/enums.dart';
+import './clickio_consent_sdk_platform_interface.dart';
+import 'enums/enums.dart';
+
+export 'configs/configs.dart';
+export 'enums/enums.dart';
 
 /// A SDK class that provides methods for handling user consent and related functionalities.
 /// This includes initialization, consent updates, dialog presentation, and retrieving consent information.
@@ -61,6 +63,29 @@ class ClickioConsentSdk {
       mode: mode,
       attNeeded: attNeeded,
     );
+  }
+
+  /// Set the callback for web-driven close
+  void setOnWebClose(WebViewCloseCallback callback) {
+    ClickioConsentSdkPlatform.instance.setOnWebClose(callback);
+  }
+
+  /// Returns  a custom WebViewController with provided URL and layout config.
+  /// Parameter urlString: WebView URL.
+  /// Parameter config: config object that describes WebView parameters: backgroundColor,
+  /// width, height, gravity.
+  Widget webViewLoadUrl({required String url, WebViewConfig? webViewConfig}) {
+    final config = webViewConfig ?? WebViewConfig();
+
+    return ClickioConsentSdkPlatform.instance.webViewLoadUrl(
+      url: url,
+      webViewConfig: config,
+    );
+  }
+
+  /// [iOS] Safely release webview resources and detach handlers
+  Future<void> cleanup() {
+    return ClickioConsentSdkPlatform.instance.cleanup();
   }
 
   /// Retrieves the consent scope as a string.

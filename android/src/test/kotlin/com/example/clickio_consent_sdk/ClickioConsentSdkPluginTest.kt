@@ -19,7 +19,7 @@ internal class ClickioConsentSdkPluginTest {
     val plugin = ClickioConsentSdkPlugin()
 
     val call = MethodCall("getPlatformVersion", null)
-    val mockResult: MethodChannel.Result = Mockito.mock(MethodChannel.Result::class.java)
+    val mockResult: MethodChannel.Result = Mockito.mock(::class.java)
     plugin.onMethodCall(call, mockResult)
 
     Mockito.verify(mockResult).success("Android " + android.os.Build.VERSION.RELEASE)

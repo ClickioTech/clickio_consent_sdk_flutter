@@ -1,16 +1,24 @@
 import ClickioConsentSDKManager
 import Flutter
 import UIKit
+import WebKit
 
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
   private var channel: FlutterMethodChannel?
+  private var factory: ClickioWebViewFactory?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let methodChannel = FlutterMethodChannel(
       name: "clickio_consent_sdk",
       binaryMessenger: registrar.messenger()
     )
+
+    let factory = ClickioWebViewFactory(messenger: registrar.messenger())
+    registrar.register(factory, withId: "clickio_webview")
+
     let instance = ClickioConsentSdkPlugin()
+    instance.channel = methodChannel
+    instance.factory = factory
     registrar.addMethodCallDelegate(instance, channel: methodChannel)
 
     ClickioConsentSDK.shared.onReady {
@@ -42,6 +50,8 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
         return
       }
       self.openDialog(call: call, viewController: controller, result: result)
+    case "cleanup":
+      self.cleanup(result: result)
     case "getConsentScope":
       self.getConsentScope(result: result)
     case "getConsentState":
@@ -147,15 +157,26 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
     let mode: ClickioConsentSDK.DialogMode = dialogMode == "resurface" ? .resurface : .default
 
     DispatchQueue.main.async {
-      do {
-        ClickioConsentSDK.shared.openDialog(
-          mode: mode,
-          in: viewController,
-          attNeeded: attNeeded
-        )
+      ClickioConsentSDK.shared.openDialog(
+        mode: mode,
+        in: viewController,
+        attNeeded: attNeeded
+      )
+      result("Consent Dialog Opened")
+    }
+  }
 
-        result("Consent Dialog Opened")
-      }
+  @MainActor
+  private func cleanup(result: FlutterResult) {
+    if let webView = factory?.getLastWebView() {
+      webView.stopLoading()
+      webView.navigationDelegate = nil
+      webView.uiDelegate = nil
+      webView.removeFromSuperview()
+        
+      result(nil)
+    } else {
+      result(FlutterError(code: "NO_WEBVIEW", message: "No active webview to cleanup", details: nil))
     }
   }
 

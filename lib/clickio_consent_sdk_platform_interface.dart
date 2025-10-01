@@ -1,8 +1,13 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import './clickio_consent_sdk_method_channel.dart';
-import './config/config.dart';
 import './enums/enums.dart';
+import './configs/configs.dart';
+
+typedef WebViewCloseCallback = Future<void> Function();
 
 abstract class ClickioConsentSdkPlatform extends PlatformInterface {
   ClickioConsentSdkPlatform() : super(token: _token);
@@ -24,6 +29,8 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  WebViewCloseCallback? _onWebClose;
+
   Future<String?> initialize({required Config config}) async {
     return _instance.initialize(config: config);
   }
@@ -37,6 +44,81 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     required bool attNeeded,
   }) async {
     return _instance.openDialog(mode: mode, attNeeded: attNeeded);
+  }
+
+  void setOnWebClose(WebViewCloseCallback callback) {
+    _onWebClose = callback;
+
+    const MethodChannel('clickio_webview').setMethodCallHandler((call) async {
+      if (call.method == 'webViewCloseRequest') {
+        if (_onWebClose != null) {
+          await _onWebClose!();
+        }
+      }
+    });
+  }
+
+  Widget webViewLoadUrl({
+    required String url,
+    required WebViewConfig webViewConfig,
+  }) {
+    final viewType = 'clickio_webview';
+    final backgroundColor = webViewConfig.backgroundColor?.toARGB32();
+    final height = webViewConfig.height ?? double.infinity;
+    final width = webViewConfig.width ?? double.infinity;
+
+    Widget webView = SizedBox(
+      height: height.toDouble(),
+      width: width.toDouble(),
+      child:
+          defaultTargetPlatform == TargetPlatform.android
+              ? AndroidView(
+                viewType: viewType,
+                creationParams: {
+                  'url': url,
+                  'backgroundColor': backgroundColor,
+                  'height': webViewConfig.height,
+                  'width': webViewConfig.width,
+                  'gravity': webViewConfig.gravity?.name,
+                },
+                creationParamsCodec: const StandardMessageCodec(),
+              )
+              : UiKitView(
+                viewType: viewType,
+                creationParams: {
+                  'url': url,
+                  'backgroundColor': backgroundColor,
+                  'height': webViewConfig.height,
+                  'width': webViewConfig.width,
+                  'gravity': webViewConfig.gravity?.name,
+                },
+                creationParamsCodec: const StandardMessageCodec(),
+              ),
+    );
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      Alignment alignment;
+
+      switch (webViewConfig.gravity) {
+        case WebViewGravity.top:
+          alignment = Alignment.topCenter;
+          break;
+        case WebViewGravity.bottom:
+          alignment = Alignment.bottomCenter;
+          break;
+        case WebViewGravity.center:
+        default:
+          alignment = Alignment.center;
+      }
+
+      webView = Align(alignment: alignment, child: webView);
+    }
+
+    return webView;
+  }
+
+  Future<void> cleanup() async {
+    return _instance.cleanup();
   }
 
   Future<String?> getConsentScope() async {

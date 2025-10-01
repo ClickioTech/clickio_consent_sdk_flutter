@@ -10,7 +10,8 @@ A Flutter plugin that wraps the native Clickio Consent SDK for Android and iOS, 
 6. [Integration with Third-Party Libraries for Google Consent Mode](#integration-with-third-party-libraries-for-google-consent-mode)
 7. [Integration with Third-Party Libraries When Google Consent Mode Is Disabled](#integration-with-third-party-libraries-when-google-consent-mode-is-disabled)
 8. [Delaying Google Mobile Ads display until ATT and User Consent](#delaying-google-mobile-ads-display-until-att-and-user-consent)
-9. [Running the Plugin Example App](#running-the-plugin-example-app)
+9. [WebView Consent Synchronization](#webview-consent-synchronization)
+10. [Running the Plugin Example App](#running-the-plugin-example-app)
 
 
 ## Requirements
@@ -27,6 +28,22 @@ Before integrating the ClickioConsentSdk (hereinafter reffered to as the Clickio
 <uses-permission android:name="android.permission.INTERNET"/>
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 ```
+
+The plugin requires your `MainActivity` to extend `FlutterFragmentActivity` instead of the default `FlutterActivity`.
+This is necessary because under the hood, the WebView plugin uses a **Fragment-based approach**, and the WebView factory expects a `FragmentActivity` context. If your activity does not extend `FlutterFragmentActivity`, you may see errors in the log when opening the WebView dialog.
+
+#### In your app MainActivity.kt file:
+```kotlin
+package com.example.myapp
+
+import io.flutter.embedding.android.FlutterFragmentActivity
+
+class MainActivity: FlutterFragmentActivity() {
+    // Your usual setup here
+}
+```
+
+
 
 ### iOS
 
@@ -56,7 +73,7 @@ This will add a line like this to your `pubspec.yaml` (and run an implicit `flut
 
 ```yaml
 dependencies:
-  clickio_consent_sdk: ^1.0.0
+  clickio_consent_sdk: ^1.0.1
 ```
 
 Alternatively, your editor might support `flutter pub get`. Check the docs for your editor to learn more.
@@ -405,12 +422,18 @@ class GoogleConsentStatus {
   final bool adStorageGranted;
   final bool adUserDataGranted;
   final bool adPersonalizationGranted;
+  final bool securityStorageGranted;
+  final bool personalizationStorageGranted;
+  final bool functionalityStorageGranted;
 
   GoogleConsentStatus({
     required this.analyticsStorageGranted,
     required this.adStorageGranted,
     required this.adUserDataGranted,
     required this.adPersonalizationGranted,
+    required this.securityStorageGranted,
+    required this.personalizationStorageGranted,
+    required this.functionalityStorageGranted,
   });
 }
 ```
@@ -418,7 +441,10 @@ class GoogleConsentStatus {
 - `analyticsStorageGranted` — Consent for analytics storage  
 - `adStorageGranted` — Consent for ad storage  
 - `adUserDataGranted` — Consent for processing user data for ads  
-- `adPersonalizationGranted` — Consent for ad personalization  
+- `adPersonalizationGranted` — Consent for ad personalization
+- `securityStorageGranted` — Consent for Security Storage.
+- `personalizationStorageGranted` — Consent for Personalization Storage.
+- `functionalityStorageGranted` — Consent for Functionality Storage. 
 
 ---
 
@@ -572,6 +598,123 @@ void _loadBannerAd() {
     listener: BannerAdListener(),
   ).load();
 }
+```
+
+---
+
+## WebView Consent Synchronization
+
+### Overview
+
+When your Flutter app displays **content** (built with Dart) and **web content** inside a WebView (for example, embedded websites or widgets), it is important to synchronize user consent. Without synchronization, the Consent Management Platform (CMP) dialog may appear twice — once in the app layer and once inside the WebView content.
+
+The `webViewLoadUrl()` method helps **synchronize consent** between app and web layers. It creates and returns a configured `WebView` widget for each platform (`AndroidView` for Android and `UiKitView` for iOS) to handle saved consent, which you can then embed into your app screens as needed. You can also customize the appearance through the `WebViewConfig` configuration class and wrap the view using Flutter widgets.
+
+💡 **Tip:** Use this method whenever you need to display web content that must respect the user’s consent settings already established in the part of your Flutter app. This ensures a seamless experience and prevents duplicate consent prompts.
+
+```dart
+ Widget webViewLoadUrl({required String url, WebViewConfig? webViewConfig}) {
+    final config = webViewConfig ?? WebViewConfig();
+
+    return ClickioConsentSdkPlatform.instance.webViewLoadUrl(
+      url: url,
+      webViewConfig: config,
+    );
+  }
+```
+
+### Configuration
+
+**`WebViewConfig` class:**
+```dart
+ class WebViewConfig {
+  /// Background color of the WebView.
+  /// Default: Colors.transparent. Example: 0xFFFFFFFF or Colors.white
+  final Color? backgroundColor;
+
+  /// Height of the WebView in pixels.
+  /// Default: null - widget will expand to fill available space (match parent behavior)
+  final int? height;
+
+  /// Width of the WebView in pixels.
+  /// Default: null - widget will expand to fill available space (match parent behavior)
+  final int? width;
+
+  /// Alignment of the WebView content inside its container.
+  /// Default: WebViewGravity.center
+  final WebViewGravity? gravity;
+
+  const WebViewConfig({
+    this.backgroundColor = Colors.transparent,
+    this.height,
+    this.width,
+    this.gravity = WebViewGravity.center,
+  });
+}
+```
+
+**`WebViewGravity` enum:**
+```dart
+ enum WebViewGravity { top, center, bottom }
+```
+
+### Integration example
+
+In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` method. You can place it anywhere in a typical widget tree, such as inside a `Dialog`, `Column`, `Align`, `SizedBox`, etc.
+
+```dart
+ void webViewLoadUrl() async {
+    // Option B: Set web-driven close callback
+    clickioConsentSdk.setOnWebClose(() async {
+      await Navigator.maybePop(context); // close the dialog
+      await clickioConsentSdk.cleanup(); // cleanup resources
+    });
+
+    // Create the WebView widget
+    final webView = clickioConsentSdk.webViewLoadUrl(
+      url: 'https://example.com',
+      webViewConfig: WebViewConfig(
+        backgroundColor: Colors.lightBlueAccent,
+        height: 600,
+        width: 350,
+        gravity: WebViewGravity.center,
+      ),
+    );
+
+    // Display the WebView inside a Dialog
+    await showDialog(
+      context: context,
+      builder:
+          (_) => Dialog(
+            backgroundColor: backgroundColor,
+            insetPadding: EdgeInsets.zero,
+            clipBehavior: Clip.hardEdge,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Option A: Custom close button
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () async {
+                    await Navigator.maybePop(context); // close dialog with releasing resources
+                  },
+                ),
+                // Your WebView widget with provided WebViewConfig
+                webView, 
+              ],
+            ),
+          ),
+    );
+  }
+```
+
+#### Note: To close the overlay, either (a) add an on-screen close button that sets the flag to false, or (b) provide an SDK callback so the web content can request closing (recommended for web-driven close).
+
+#### When removing, don't forget to call the appropriate methods and clean up delegates/handlers through SDK's `cleanup()` method that safely releases webview resources and detach handlers:
+
+```dart
+await clickioConsentSdk.cleanup();
 ```
 
 ---

@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name                  = 'clickio_consent_sdk'
-  s.version               = '1.0.0'
+  s.version               = '1.0.1'
   s.summary               = 'Clickio Consent SDK for Flutter'
   s.description           = <<-DESC
                             A Flutter plugin that integrates the Clickio Consent SDK for iOS.
@@ -17,5 +17,5 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'ClickioConsentSDKManager', '1.0.6'
+  s.dependency 'ClickioConsentSDKManager', '1.0.7'
 end

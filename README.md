@@ -605,7 +605,7 @@ void _loadBannerAd() {
 
 ### Overview
 
-When your Flutter app displays **content** (built with Dart) and **web content** inside a WebView (for example, embedded websites or widgets), it is important to synchronize user consent. Without synchronization, the Consent Management Platform (CMP) dialog may appear twice — once for the app layer and once for the WebView content.
+When your Flutter app displays **content** (built with Dart) and **web content** inside a WebView (for example, embedded websites or widgets), it is important to synchronize user consent. Without synchronization, the Consent Management Platform (CMP) dialog may appear twice — once in the app layer and once inside the WebView content.
 
 The `webViewLoadUrl()` method helps **synchronize consent** between app and web layers. It creates and returns a configured `WebView` widget for each platform (`AndroidView` for Android and `UiKitView` for iOS) to handle saved consent, which you can then embed into your app screens as needed. You can also customize the appearance through the `WebViewConfig` configuration class and wrap the view using Flutter widgets.
 
@@ -663,12 +663,18 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
 
 ```dart
  void webViewLoadUrl() async {
+    // Option B: Set web-driven close callback
+    clickioConsentSdk.setOnWebClose(() async {
+      await Navigator.maybePop(context); // close the dialog
+      await clickioConsentSdk.cleanup(); // cleanup resources
+    });
+
     // Create the WebView widget
     final webView = clickioConsentSdk.webViewLoadUrl(
       url: 'https://example.com',
       webViewConfig: WebViewConfig(
         backgroundColor: Colors.lightBlueAccent,
-        height: 700,
+        height: 600,
         width: 350,
         gravity: WebViewGravity.center,
       ),
@@ -679,9 +685,24 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
       context: context,
       builder:
           (_) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: backgroundColor,
             insetPadding: EdgeInsets.zero,
-            child: webView,
+            clipBehavior: Clip.hardEdge,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Option A: Custom close button
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () async {
+                    await Navigator.maybePop(context); // close dialog with releasing resources
+                  },
+                ),
+                // Your WebView widget with provided WebViewConfig
+                webView, 
+              ],
+            ),
           ),
     );
   }

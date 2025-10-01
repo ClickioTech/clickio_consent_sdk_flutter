@@ -65,6 +65,11 @@ class ClickioConsentSdk {
     );
   }
 
+  /// Set the callback for web-driven close
+  void setOnWebClose(WebViewCloseCallback callback) {
+    ClickioConsentSdkPlatform.instance.setOnWebClose(callback);
+  }
+
   /// Returns  a custom WebViewController with provided URL and layout config.
   /// Parameter urlString: WebView URL.
   /// Parameter config: config object that describes WebView parameters: backgroundColor,

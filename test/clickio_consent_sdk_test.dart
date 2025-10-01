@@ -118,6 +118,11 @@ class MockClickioConsentSdkPlatform
   Future<void> cleanup() {
     throw UnimplementedError();
   }
+
+  @override
+  void setOnWebClose(WebViewCloseCallback callback) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

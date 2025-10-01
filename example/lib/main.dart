@@ -122,11 +122,18 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> webViewLoadUrl() async {
+    final backgroundColor = const Color.fromARGB(255, 227, 247, 246);
+
+    clickioConsentSdk.setOnWebClose(() async {
+      await Navigator.maybePop(context);
+      await clickioConsentSdk.cleanup();
+    });
+
     final webView = clickioConsentSdk.webViewLoadUrl(
       url: 'https://example.com',
       webViewConfig: WebViewConfig(
-        backgroundColor: Colors.lightBlueAccent,
-        height: 700,
+        backgroundColor: backgroundColor,
+        height: 600,
         width: 350,
         gravity: WebViewGravity.center,
       ),
@@ -136,9 +143,25 @@ class _MyAppState extends State<MyApp> {
       context: context,
       builder:
           (_) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: backgroundColor,
             insetPadding: EdgeInsets.zero,
-            child: webView,
+            clipBehavior: Clip.hardEdge,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Custom close button
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () async {
+                    // Removing WebView by button click
+                    await Navigator.maybePop(context);
+                  },
+                ),
+                // Custom WebView
+                webView,
+              ],
+            ),
           ),
     );
 

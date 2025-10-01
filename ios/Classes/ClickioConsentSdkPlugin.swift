@@ -1,6 +1,8 @@
 import ClickioConsentSDKManager
 import Flutter
 import UIKit
+import WebKit
+
 
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
   private var channel: FlutterMethodChannel?
@@ -12,7 +14,7 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
       binaryMessenger: registrar.messenger()
     )
 
-    let factory = ClickioWebViewFactory()
+    let factory = ClickioWebViewFactory(messenger: registrar.messenger())
     registrar.register(factory, withId: "clickio_webview")
 
     let instance = ClickioConsentSdkPlugin()
@@ -167,8 +169,12 @@ public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
 
   @MainActor
   private func cleanup(result: FlutterResult) {
-    if let controller = factory?.getLastController() {
-      controller.cleanup()
+    if let webView = factory?.getLastWebView() {
+      webView.stopLoading()
+      webView.navigationDelegate = nil
+      webView.uiDelegate = nil
+      webView.removeFromSuperview()
+        
       result(nil)
     } else {
       result(FlutterError(code: "NO_WEBVIEW", message: "No active webview to cleanup", details: nil))

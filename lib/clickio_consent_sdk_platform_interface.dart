@@ -7,6 +7,8 @@ import './clickio_consent_sdk_method_channel.dart';
 import './enums/enums.dart';
 import './configs/configs.dart';
 
+typedef WebViewCloseCallback = Future<void> Function();
+
 abstract class ClickioConsentSdkPlatform extends PlatformInterface {
   ClickioConsentSdkPlatform() : super(token: _token);
 
@@ -27,6 +29,8 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  WebViewCloseCallback? _onWebClose;
+
   Future<String?> initialize({required Config config}) async {
     return _instance.initialize(config: config);
   }
@@ -42,19 +46,44 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     return _instance.openDialog(mode: mode, attNeeded: attNeeded);
   }
 
+  void setOnWebClose(WebViewCloseCallback callback) {
+    _onWebClose = callback;
+
+    const MethodChannel('clickio_webview').setMethodCallHandler((call) async {
+      if (call.method == 'webViewCloseRequest') {
+        if (_onWebClose != null) {
+          await _onWebClose!();
+        }
+      }
+    });
+  }
+
   Widget webViewLoadUrl({
     required String url,
     required WebViewConfig webViewConfig,
   }) {
     final viewType = 'clickio_webview';
     final backgroundColor = webViewConfig.backgroundColor?.toARGB32();
+    final height = webViewConfig.height ?? double.infinity;
+    final width = webViewConfig.width ?? double.infinity;
 
-    Widget webView =
-        defaultTargetPlatform == TargetPlatform.android
-            ? SizedBox(
-              height: webViewConfig.height?.toDouble(),
-              width: webViewConfig.width?.toDouble(),
-              child: AndroidView(
+    Widget webView = SizedBox(
+      height: height.toDouble(),
+      width: width.toDouble(),
+      child:
+          defaultTargetPlatform == TargetPlatform.android
+              ? AndroidView(
+                viewType: viewType,
+                creationParams: {
+                  'url': url,
+                  'backgroundColor': backgroundColor,
+                  'height': webViewConfig.height,
+                  'width': webViewConfig.width,
+                  'gravity': webViewConfig.gravity?.name,
+                },
+                creationParamsCodec: const StandardMessageCodec(),
+              )
+              : UiKitView(
                 viewType: viewType,
                 creationParams: {
                   'url': url,
@@ -65,20 +94,7 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
                 },
                 creationParamsCodec: const StandardMessageCodec(),
               ),
-            )
-            : defaultTargetPlatform == TargetPlatform.iOS
-            ? UiKitView(
-              viewType: viewType,
-              creationParams: {
-                'url': url,
-                'backgroundColor': backgroundColor,
-                'height': webViewConfig.height,
-                'width': webViewConfig.width,
-                'gravity': webViewConfig.gravity?.name,
-              },
-              creationParamsCodec: const StandardMessageCodec(),
-            )
-            : const SizedBox.shrink();
+    );
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       Alignment alignment;

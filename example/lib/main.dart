@@ -124,6 +124,11 @@ class _MyAppState extends State<MyApp> {
   Future<void> webViewLoadUrl() async {
     final backgroundColor = const Color.fromARGB(255, 227, 247, 246);
 
+    clickioConsentSdk.setOnWebClose(() async {
+      await Navigator.maybePop(context);
+      await clickioConsentSdk.cleanup();
+    });
+
     final webView = clickioConsentSdk.webViewLoadUrl(
       url: 'https://example.com',
       webViewConfig: WebViewConfig(
@@ -151,7 +156,6 @@ class _MyAppState extends State<MyApp> {
                   onPressed: () async {
                     // Removing WebView by button click
                     await Navigator.maybePop(context);
-                    await clickioConsentSdk.cleanup();
                   },
                 ),
                 // Custom WebView

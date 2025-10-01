@@ -7,6 +7,8 @@ import './clickio_consent_sdk_method_channel.dart';
 import './enums/enums.dart';
 import './configs/configs.dart';
 
+typedef WebViewCloseCallback = Future<void> Function();
+
 abstract class ClickioConsentSdkPlatform extends PlatformInterface {
   ClickioConsentSdkPlatform() : super(token: _token);
 
@@ -27,6 +29,8 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  WebViewCloseCallback? _onWebClose;
+
   Future<String?> initialize({required Config config}) async {
     return _instance.initialize(config: config);
   }
@@ -40,6 +44,18 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     required bool attNeeded,
   }) async {
     return _instance.openDialog(mode: mode, attNeeded: attNeeded);
+  }
+
+  void setOnWebClose(WebViewCloseCallback callback) {
+    _onWebClose = callback;
+
+    const MethodChannel('clickio_webview').setMethodCallHandler((call) async {
+      if (call.method == 'webViewCloseRequest') {
+        if (_onWebClose != null) {
+          await _onWebClose!();
+        }
+      }
+    });
   }
 
   Widget webViewLoadUrl({

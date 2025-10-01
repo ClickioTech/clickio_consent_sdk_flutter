@@ -663,6 +663,12 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
 
 ```dart
  void webViewLoadUrl() async {
+    // Option B: Set web-driven close callback
+    clickioConsentSdk.setOnWebClose(() async {
+      await Navigator.maybePop(context); // close the dialog
+      await clickioConsentSdk.cleanup(); // cleanup resources
+    });
+
     // Create the WebView widget
     final webView = clickioConsentSdk.webViewLoadUrl(
       url: 'https://example.com',
@@ -686,24 +692,20 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Custom close button
+                // Option A: Custom close button
                 IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () async {
-                    await Navigator.maybePop(context); // close dialog
-                    await clickioConsentSdk.cleanup(); // release resources
+                    await Navigator.maybePop(context); // close dialog with releasing resources
                   },
                 ),
-                // Your WebView widget with width/height from WebViewConfig
+                // Your WebView widget with provided WebViewConfig
                 webView, 
               ],
             ),
           ),
     );
   }
-
-  // Best practice: when removing the WebView, call cleanup() to release resources
-  await clickioConsentSdk.cleanup();
 ```
 
 #### Note: To close the overlay, either (a) add an on-screen close button that sets the flag to false, or (b) provide an SDK callback so the web content can request closing (recommended for web-driven close).

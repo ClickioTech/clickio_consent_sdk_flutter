@@ -97,4 +97,5 @@ class ClickioWebViewCloseHandler: NSObject, WKScriptMessageHandler {
             channel.invokeMethod("webViewCloseRequest", arguments: nil)
         }
     }
+
 }

@@ -164,6 +164,8 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
     );
+
+    await clickioConsentSdk.cleanup();
   }
 
   Future<void> getConsentData() async {

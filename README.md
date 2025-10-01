@@ -706,6 +706,9 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
           ),
     );
   }
+
+  // Best practice: when removing the WebView, call cleanup() to release resources
+  await clickioConsentSdk.cleanup();
 ```
 
 #### Note: To close the overlay, either (a) add an on-screen close button that sets the flag to false, or (b) provide an SDK callback so the web content can request closing (recommended for web-driven close).

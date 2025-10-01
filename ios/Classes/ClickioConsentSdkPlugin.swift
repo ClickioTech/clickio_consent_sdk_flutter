@@ -3,6 +3,7 @@ import Flutter
 import UIKit
 import WebKit
 
+
 public class ClickioConsentSdkPlugin: NSObject, FlutterPlugin {
   private var channel: FlutterMethodChannel?
   private var factory: ClickioWebViewFactory?

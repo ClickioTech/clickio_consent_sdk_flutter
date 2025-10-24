@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -66,12 +67,13 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
     final backgroundColor = webViewConfig.backgroundColor?.toARGB32();
     final height = webViewConfig.height ?? double.infinity;
     final width = webViewConfig.width ?? double.infinity;
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
 
     Widget webView = SizedBox(
       height: height.toDouble(),
       width: width.toDouble(),
       child:
-          defaultTargetPlatform == TargetPlatform.android
+          isAndroid
               ? AndroidView(
                 viewType: viewType,
                 creationParams: {
@@ -96,7 +98,7 @@ abstract class ClickioConsentSdkPlatform extends PlatformInterface {
               ),
     );
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
+    if (isAndroid) {
       Alignment alignment;
 
       switch (webViewConfig.gravity) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+### Fixed
+- Fixed scrolling behavior in custom WebView on iOS.
+- Fixed issue with synchronizing consent data in custom WebView.
+
 ## 1.0.1
 
 ### Added

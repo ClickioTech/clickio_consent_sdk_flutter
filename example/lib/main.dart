@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 import 'package:clickio_consent_sdk_example/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final clickioConsentSdk = ClickioConsentSdk();
   final config = Config(siteId: '241131', language: 'en');
+  final customUrl = 'https://example.com';
 
   Map<String, String?> _consentData = {};
 
@@ -122,7 +125,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> webViewLoadUrl() async {
-    final backgroundColor = const Color.fromARGB(255, 227, 247, 246);
+    final backgroundColor = Colors.white;
 
     clickioConsentSdk.setOnWebClose(() async {
       await Navigator.maybePop(context);
@@ -130,7 +133,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     final webView = clickioConsentSdk.webViewLoadUrl(
-      url: 'https://example.com',
+      url: customUrl,
       webViewConfig: WebViewConfig(
         backgroundColor: backgroundColor,
         height: 600,
@@ -144,7 +147,7 @@ class _MyAppState extends State<MyApp> {
       builder:
           (_) => Dialog(
             backgroundColor: backgroundColor,
-            insetPadding: EdgeInsets.zero,
+            insetPadding: Platform.isIOS ? EdgeInsets.zero : null,
             clipBehavior: Clip.hardEdge,
             child: Column(
               mainAxisSize: MainAxisSize.min,

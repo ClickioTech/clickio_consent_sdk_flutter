@@ -17,5 +17,5 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'ClickioConsentSDKManager', '1.0.7'
+  s.dependency 'ClickioConsentSDKManager', '1.0.9'
 end

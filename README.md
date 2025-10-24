@@ -687,7 +687,7 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
       builder:
           (_) => Dialog(
             backgroundColor: backgroundColor,
-            insetPadding: EdgeInsets.zero,
+            insetPadding: Platform.isIOS ? EdgeInsets.zero : null,
             clipBehavior: Clip.hardEdge,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -701,7 +701,7 @@ In Flutter app, you embed the WebView using the plugin’s `webViewLoadUrl()` me
                   },
                 ),
                 // Your WebView widget with provided WebViewConfig
-                webView, 
+                webView,
               ],
             ),
           ),

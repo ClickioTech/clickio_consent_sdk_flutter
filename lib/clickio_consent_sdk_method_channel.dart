@@ -61,10 +61,12 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<void> cleanup() async {
     if (Platform.isIOS) await _methodChannel.invokeMapMethod('cleanup');
   }
 
+  @override
   Future<String?> getConsentScope() async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentScope');
@@ -77,6 +79,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentState() async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentState');
@@ -89,6 +92,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentForPurpose({required int purposeId}) async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentForPurpose', {
@@ -102,6 +106,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentForVendor({required int vendorId}) async {
     try {
       final result = await _methodChannel.invokeMethod('getConsentForVendor', {
@@ -116,6 +121,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getTCString() async {
     try {
       final result = await _methodChannel.invokeMethod('getTCString');
@@ -128,6 +134,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getACString() async {
     try {
       final result = await _methodChannel.invokeMethod('getACString');
@@ -140,6 +147,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getGPPString() async {
     try {
       final result = await _methodChannel.invokeMethod('getGPPString');
@@ -151,6 +159,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedTCFVendors() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -165,6 +174,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedTCFLiVendors() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -179,6 +189,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedTCFPurposes() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -193,6 +204,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedTCFLiPurposes() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -207,6 +219,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedGoogleVendors() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -221,6 +234,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedOtherVendors() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -235,6 +249,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedOtherLiVendors() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -249,6 +264,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getConsentedNonTcfPurposes() async {
     try {
       final result = await _methodChannel.invokeMethod(
@@ -263,6 +279,7 @@ class MethodChannelClickioConsentSdk extends ClickioConsentSdkPlatform {
     }
   }
 
+  @override
   Future<String?> getGoogleConsentMode() async {
     try {
       final result = await _methodChannel.invokeMethod('getGoogleConsentMode');

@@ -1,8 +1,8 @@
 PODS:
   - clickio_consent_sdk (1.0.1):
-    - ClickioConsentSDKManager (= 1.0.9)
+    - ClickioConsentSDKManager (= 1.0.10)
     - Flutter
-  - ClickioConsentSDKManager (1.0.9)
+  - ClickioConsentSDKManager (1.0.10)
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
@@ -25,8 +25,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  clickio_consent_sdk: 1a7432b5d718744524cd591500e16d6075d2d122
-  ClickioConsentSDKManager: 6df4eaf674950aa281dab312a12c5d61b70c7e7d
+  clickio_consent_sdk: 0c3c87f079d4477e29f8ce0e967ceddfe24165f5
+  ClickioConsentSDKManager: 7c48f9e11f70809580f9ced84bc8548f06f63ce7
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 

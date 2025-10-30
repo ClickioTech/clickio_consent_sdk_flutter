@@ -1,3 +1,4 @@
+import 'package:clickio_consent_sdk/clickio_consent_sdk.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -5,8 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import './clickio_consent_sdk_method_channel.dart';
-import './enums/enums.dart';
-import './configs/configs.dart';
 
 typedef WebViewCloseCallback = Future<void> Function();
 

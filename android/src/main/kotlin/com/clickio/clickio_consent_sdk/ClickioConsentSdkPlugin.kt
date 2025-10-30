@@ -63,6 +63,9 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
     private var fragmentActivity: FragmentActivity? = null
     private var pluginBinding: FlutterPlugin.FlutterPluginBinding? = null
 
+    private var isReady = false
+    private var pendingDialog: (() -> Unit)? = null
+
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         pluginBinding = binding
         channel = MethodChannel(binding.binaryMessenger, "clickio_consent_sdk")
@@ -136,7 +139,10 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
         clickioConsentSdk.initialize(act, config)
 
         clickioConsentSdk.onReady {
+            isReady = true
             channel.invokeMethod("onReady", null)
+            pendingDialog?.invoke()
+            pendingDialog = null
         }
 
         clickioConsentSdk.onConsentUpdated {
@@ -161,7 +167,15 @@ class ClickioConsentSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware 
             "resurface" -> ClickioConsentSDK.DialogMode.RESURFACE
             else -> ClickioConsentSDK.DialogMode.DEFAULT
         }
-        ClickioConsentSDK.getInstance().openDialog(act, mode)
+
+        val clickioConsentSdk = ClickioConsentSDK.getInstance()
+
+        if (isReady) {
+            clickioConsentSdk.openDialog(act, mode)
+        } else {
+            pendingDialog = { clickioConsentSdk.openDialog(act, mode) }
+        }
+
         result.success(null)
     }
 

@@ -43,8 +43,6 @@ class MainActivity: FlutterFragmentActivity() {
 }
 ```
 
-
-
 ### iOS
 
 - **Minimum iOS Version**: `15.0+`
@@ -109,7 +107,6 @@ final config = Config(siteId: 'your_clickio_site_id');
 Future<void> initializeSdk() async {
   await clickioConsentSdk.setLogsMode(mode: LogsMode.verbose);
   await clickioConsentSdk.initialize(config: config);
- 
 }
 ```
 
@@ -173,12 +170,6 @@ await clickioConsentSdk.initialize(
 
 ---
 
-### Handling SDK Readiness
-
-Make sure to use SDK methods **after** the SDK is fully ready. You can do this via your app lifecycle or after `initialize`. (No explicit `onReady` in Flutter – manage readiness with your app state.)
-
----
-
 ### Functionality Overview
 
 #### Opening the Consent Dialog
@@ -199,6 +190,33 @@ await clickioConsentSdk.openDialog(
 - `attNeeded`: Determines if ATT is required.
 
 > 💡 If your app has it's own ATT Permission manager you just pass `false` in `attNeeded` parameter and call your own ATT method. Keep in mind that in this case consent screen will be shown regardless given ATT Permission.
+
+---
+
+### Example Scenarios:
+
+**1. Show ATT Permission first, then show Consent Dialog only if user has granted ATT Permission:**  
+*(Apple recommended)*
+
+```dart
+await clickioConsentSdk.openDialog(
+  mode: DialogMode.defaultMode,
+  attNeeded: true,
+);
+```
+
+**2. Show only Consent Dialog bypassing ATT Permission demonstration:**
+
+```dart
+await clickioConsentSdk.openDialog(
+  mode: DialogMode.defaultMode,
+  attNeeded: false,
+);
+```
+
+#### Important:
+- **we suggest you to use this approach only if you handle ATT Permission on your own.**
+- **make sure that user has given permission in the ATT dialog and only then perfrom [`openDialog`](#opening-the-consent-dialog) method call! Otherwise it will lead to incorrect work of the SDK: showing CMP regardles given ATT Permission is not recommended by Apple. Moreover, [`openDialog`](#opening-the-consent-dialog) API calls to SDK's domains will be blocked by Apple until user provides their permission in ATT dialog.**
 
 ---
 
@@ -232,31 +250,15 @@ Future<void> _reopenConsentDialog() async {
 
 ---
 
-### Example Scenarios:
+### Consent Update Callback
 
-**1. Show ATT Permission first, then show Consent Dialog only if user has granted ATT Permission:**  
-*(Apple recommended)*
-
-```dart
-await clickioConsentSdk.openDialog(
-  mode: DialogMode.defaultMode,
-  attNeeded: true,
-);
-```
-
-**2. Show only Consent Dialog bypassing ATT Permission demonstration:**
+The SDK provides an `onConsentUpdated` callback that is triggered whenever consent is updated:
 
 ```dart
-await clickioConsentSdk.openDialog(
-  mode: DialogMode.defaultMode,
-  attNeeded: false,
-);
+ClickioConsentSdk.onConsentUpdate.listen((_) async {
+  // Handle consent update logic
+});
 ```
-
-#### Important:
-- **we suggest you to use this approach only if you handle ATT Permission on your own.**
-- **make sure that user has given permission in the ATT dialog and only then perfrom [`openDialog`](#opening-the-consent-dialog) method call! Otherwise it will lead to incorrect work of the SDK: showing CMP regardles given ATT Permission is not recommended by Apple. Moreover, [`openDialog`](#opening-the-consent-dialog) API calls to SDK's domains will be blocked by Apple until user provides their permission in ATT dialog.**
-
 
 ---
 

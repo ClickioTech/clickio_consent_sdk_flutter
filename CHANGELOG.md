@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.3
+
+### Fixed
+- Resolved an issue where the CMP dialog failed to appear on app launch when using DialogMode.defaultMode on Android.
+- The dialog now displays correctly on first launch, including clean installations on new devices.
+
+
 ## 1.0.2
 
 ### Fixed

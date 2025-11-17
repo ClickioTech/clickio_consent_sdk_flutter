@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.4
+
+### Changed
+- Updated native SDK dependencies:
+  - **Android:** Updated ClickioConsentSDK Android to `1.0.1`.
+  - **iOS:** Updated ClickioConsentSDKManager to `1.0.11-rc`.
+
 ## 1.0.3
 
 ### Fixed

@@ -71,7 +71,7 @@ This will add a line like this to your `pubspec.yaml` (and run an implicit `flut
 
 ```yaml
 dependencies:
-  clickio_consent_sdk: ^1.0.1
+  clickio_consent_sdk: ^1.0.4
 ```
 
 Alternatively, your editor might support `flutter pub get`. Check the docs for your editor to learn more.

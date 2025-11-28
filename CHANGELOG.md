@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5
+
+### Fixed
+- Fixed unexpected behavior on iOS when the user denies the ATT prompt.
+
 ## 1.0.4
 
 ### Changed

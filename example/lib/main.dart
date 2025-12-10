@@ -16,7 +16,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final clickioConsentSdk = ClickioConsentSdk();
   final config = Config(siteId: '241131', language: 'en');
-  final customUrl = 'https://example.com';
+  final customUrl =
+      'https://account.clickio.com/public/test/solveit-demo/tcf-global.html';
 
   Map<String, String?> _consentData = {};
 
